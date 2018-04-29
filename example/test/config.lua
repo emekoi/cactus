@@ -1,0 +1,4 @@
+return {
+	width = 512,
+	height = 512
+}
