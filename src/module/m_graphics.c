@@ -21,10 +21,10 @@ double m_graphics_maxFps = 60.;
 static int inited = 0;
 static int screenWidth = 0;
 static int screenHeight = 0;
-static int screenRef = 0;
 static int fullscreen = 0;
 static int resizable = 0;
 static int borderless = 0;
+// static WrenHandle screenHandle = 0;
 
 SDL_Window *m_graphics_window;
 // Buffer *m_graphics_screen;
@@ -87,11 +87,10 @@ static void w_graphics_init(WrenVM *W) {
   /* Init SDL video */
   resetVideoMode(W);
   /* Create, store in registry and return main screen buffer */
-  m_graphics_screen = buffer_new(L);
-  m_graphics_screen->buffer = sr_newBufferShared(
-    SDL_GetWindowSurface(m_graphics_window)->pixels, screenWidth, screenHeight);
-  lua_pushvalue(L, -1);
-  screenRef = lua_ref(L, LUA_REGISTRYINDEX);
+//   m_graphics_screen = buffer_new(W);
+//   m_graphics_screen->buffer = sr_newBufferShared(
+//     SDL_GetWindowSurface(m_graphics_window)->pixels, screenWidth, screenHeight);
+//   screenHandle = wrenGetSlotHandle(W, 0);
   /* Set state */
   inited = 1;
   return 1;
