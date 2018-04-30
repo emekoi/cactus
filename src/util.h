@@ -22,51 +22,6 @@ typedef struct {
   WrenForeignClassMethods_Map classes;
 } ForeignWrenData;
 
-
-
-
-{
-  char *stringf(const char *str, ...) {
-
-  return v;
-}
-}
-
-
-
-
-#define WREN_ERROR(vm, str, ...) do {      \
-  va_list arg, tmp;                        \
-  char *res;                               \
-  int len;                                 \
-  if (str == NULL) return NULL;            \
-  va_start(arg, str);                      \
-  /* create a copy of the list of args */  \
-  __va_copy(tmp, arg);                     \
-  /* get length string should be */        \
-  len = vsnprintf(res, 0, str, tmp);       \
-  /* toss temp copy */                     \
-  va_end(tmp);                             \
-  /* something is wrong... */              \
-  if (len < 0) return NULL;                \
-  /* resize the string */                  \
-  res = calloc(len + 1, sizeof(char));     \
-  res[len] = '\0';                         \
-  /* format the string */                  \
-  vsnprintf(res, len + 1, str, arg);       \
-  /* toss args */                          \
-  va_end(arg);                             \
-  wrenSetSlotString(res);                  \
-  wrenAbortFiber(vm, 0);                   \
-} while (false)
-
-#define CHECK_TYPE(vm, type, slot, msg) do { \
-  if (wrenGetSlotType(vm, slot) != type) {   \
-    wrenSetSlotString(msg);                  \
-    wrenAbortFiber(vm, 0);                   \
-  }                                          \
-} while (false)
-
 #define ASSERT(x)\
   do {\
     if (!(x)) {\
@@ -91,5 +46,36 @@ typedef struct {
 #define MAX(a, b)       ((b) > (a) ? (b) : (a))
 #define CLAMP(x, a, b)  (MAX(a, MIN(x, b)))
 #define LERP(a, b, p)   ((a) + ((b) - (a)) * (p))
+  
+static inline wrenError(WrenVM* vm, const char *str, ...) {
+  va_list arg, tmp;
+  char *res;
+  int len;
+  if (str == NULL) return NULL;
+  va_start(arg, str);
+  /* create a copy of the list of args */
+  __va_copy(tmp, arg);
+  /* get length string should be */
+  len = vsnprintf(res, 0, str, tmp);
+  /* toss temp copy */
+  va_end(tmp);
+  /* something is wrong... */
+  if (len < 0) return NULL;
+  /* resize the string */
+  res = calloc(len + 1, sizeof(char));
+  res[len] = '\0';
+  /* format the string */
+  vsnprintf(res, len + 1, str, arg);
+  /* toss args */
+  va_end(arg);
+  wrenSetSlotString(res);
+  wrenAbortFiber(vm, 0);
+}
+
+static inline wrenCheckSlot(WrenVM *vm, int slot, int type, const char *msg) {
+  if (wrenGetSlotType(vm, slot) != type) {
+    wrenError(vm, msg);
+  }
+}
 
 #endif
