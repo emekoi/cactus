@@ -31,7 +31,7 @@ enum {
   STATE_CLOSED,
 };
 
-static int l_gif_new(lua_State *L) {
+static int l_gif_new(WrenVM *W) {
   const char *filename = luaL_checkstring(L, 1);
   int w = luaL_checknumber(L, 2);
   int h = luaL_checknumber(L, 3);
@@ -52,7 +52,7 @@ static int l_gif_new(lua_State *L) {
 }
 
 
-static int l_gif_gc(lua_State *L) {
+static int l_gif_gc(WrenVM *W) {
   Gif *self = luaL_checkudata(L, 1, CLASS_NAME);
   free(self->buf);
   /* Not closed? close now */
@@ -63,7 +63,7 @@ static int l_gif_gc(lua_State *L) {
 }
 
 
-static int l_gif_update(lua_State *L) {
+static int l_gif_update(WrenVM *W) {
   Gif *self = luaL_checkudata(L, 1, CLASS_NAME);
   Buffer *buf = luaL_checkudata(L, 2, BUFFER_CLASS_NAME);
   int delay = luaL_checknumber(L, 3);
@@ -94,7 +94,7 @@ static int l_gif_update(lua_State *L) {
 }
 
 
-static int l_gif_close(lua_State *L) {
+static int l_gif_close(WrenVM *W) {
   Gif *self = luaL_checkudata(L, 1, CLASS_NAME);
   if (self->state == STATE_CLOSED) {
     luaL_error(L, "state already closed");
@@ -105,7 +105,7 @@ static int l_gif_close(lua_State *L) {
 }
 
 
-int luaopen_gif(lua_State *L) {
+int luaopen_gif(WrenVM *W) {
   luaL_Reg reg[] = {
     { "__gc",   l_gif_gc     },
     { "new",    l_gif_new    },

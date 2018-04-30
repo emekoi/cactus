@@ -179,12 +179,12 @@ static void recalcGains(Source *self) {
   self->rgain = right * FX_UNIT;
 }
 
-static Source *checkSource(lua_State *L, int idx) {
+static Source *checkSource(WrenVM *W, int idx) {
   Source **p = luaL_checkudata(L, idx, CLASS_NAME);
   return *p;
 }
 
-static Source *newSource(lua_State *L) {
+static Source *newSource(WrenVM *W) {
   Source *self = malloc(sizeof(*self));
   ASSERT(self);
   memset(self, 0, sizeof(*self));
@@ -493,7 +493,7 @@ void source_process(Source *self, int len) {
   /* Do lua callback */
   if (self->callbackRef != LUA_NOREF) {
     lockLua();
-    lua_State *L = luaState;
+    WrenVM *W = luaState;
     /* Get _pcall function */
     lua_getglobal(L, "sol");
     if (!lua_isnil(L, -1)) {
@@ -581,7 +581,7 @@ void source_processAllSources(int len) {
 }
 
 
-static int l_source_fromData(lua_State *L) {
+static int l_source_fromData(WrenVM *W) {
   Data *data = luaL_checkudata(L, 1, DATA_CLASS_NAME);
   Source *self = newSource(L);
   /* Init data reference */
@@ -616,7 +616,7 @@ init:;
 }
 
 
-static int l_source_fromBlank(lua_State *L) {
+static int l_source_fromBlank(WrenVM *W) {
   Source *self = newSource(L);
   /* Init */
   self->dest = master;
@@ -627,7 +627,7 @@ static int l_source_fromBlank(lua_State *L) {
 }
 
 
-static int l_source_gc(lua_State *L) {
+static int l_source_gc(WrenVM *W) {
   Source *self = checkSource(L, 1);
   Command c = command(COMMAND_DESTROY, self);
   pushCommand(&c);
@@ -635,14 +635,14 @@ static int l_source_gc(lua_State *L) {
 }
 
 
-static int l_source_getLength(lua_State *L) {
+static int l_source_getLength(WrenVM *W) {
   Source *self = checkSource(L, 1);
   lua_pushnumber(L, getBaseRate(self) * self->length / self->samplerate);
   return 1;
 }
 
 
-static int l_source_getState(lua_State *L) {
+static int l_source_getState(WrenVM *W) {
   Source *self = checkSource(L, 1);
   switch (self->state) {
     case SOURCE_STATE_PLAYING : lua_pushstring(L, "playing"); break;
@@ -654,7 +654,7 @@ static int l_source_getState(lua_State *L) {
 }
 
 
-static int l_source_setCallback(lua_State *L) {
+static int l_source_setCallback(WrenVM *W) {
   Source *self = checkSource(L, 1);
   if (!lua_isnoneornil(L, 2) && lua_type(L, 2) != LUA_TFUNCTION) {
     luaL_argerror(L, 2, "expected function");
@@ -671,7 +671,7 @@ static int l_source_setCallback(lua_State *L) {
 }
 
 
-static int l_source_setDestination(lua_State *L) {
+static int l_source_setDestination(WrenVM *W) {
   Source *self = checkSource(L, 1);
   Source *dest = master;
   if (!lua_isnoneornil(L, 2)) {
@@ -703,7 +703,7 @@ static int l_source_setDestination(lua_State *L) {
 }
 
 
-static int l_source_setGain(lua_State *L) {
+static int l_source_setGain(WrenVM *W) {
   Source *self = checkSource(L, 1);
   double gain = luaL_optnumber(L, 2, 1.);
   Command c = command(COMMAND_SET_GAIN, self);
@@ -713,7 +713,7 @@ static int l_source_setGain(lua_State *L) {
 }
 
 
-static int l_source_setPan(lua_State *L) {
+static int l_source_setPan(WrenVM *W) {
   Source *self = checkSource(L, 1);
   double pan = luaL_optnumber(L, 2, 0.);
   Command c = command(COMMAND_SET_PAN, self);
@@ -723,7 +723,7 @@ static int l_source_setPan(lua_State *L) {
 }
 
 
-static int l_source_setRate(lua_State *L) {
+static int l_source_setRate(WrenVM *W) {
   Source *self = checkSource(L, 1);
   double rate = luaL_optnumber(L, 2, 1.);
   if (rate < 0) {
@@ -739,7 +739,7 @@ static int l_source_setRate(lua_State *L) {
 }
 
 
-static int l_source_setLoop(lua_State *L) {
+static int l_source_setLoop(WrenVM *W) {
   Source *self = checkSource(L, 1);
   int loop = luax_optboolean(L, 2, 0);
   Command c = command(COMMAND_SET_LOOP, self);
@@ -749,7 +749,7 @@ static int l_source_setLoop(lua_State *L) {
 }
 
 
-static int l_source_play(lua_State *L) {
+static int l_source_play(WrenVM *W) {
   Source *self = checkSource(L, 1);
   int reset = luax_optboolean(L, 2, 0);
   Command c = command(COMMAND_PLAY, self);
@@ -759,7 +759,7 @@ static int l_source_play(lua_State *L) {
 }
 
 
-static int l_source_pause(lua_State *L) {
+static int l_source_pause(WrenVM *W) {
   Source *self = checkSource(L, 1);
   Command c = command(COMMAND_PAUSE, self);
   pushCommand(&c);
@@ -767,7 +767,7 @@ static int l_source_pause(lua_State *L) {
 }
 
 
-static int l_source_stop(lua_State *L) {
+static int l_source_stop(WrenVM *W) {
   Source *self = checkSource(L, 1);
   Command c = command(COMMAND_STOP, self);
   pushCommand(&c);
@@ -775,7 +775,7 @@ static int l_source_stop(lua_State *L) {
 }
 
 
-int luaopen_source(lua_State *L) {
+int luaopen_source(WrenVM *W) {
   luaL_Reg reg[] = {
     { "__gc",           l_source_gc             },
     { "fromData",       l_source_fromData       },

@@ -8,12 +8,14 @@ TEMPSRC_DIR = ".tempsrc"
 COMPILER = "gcc"
 INCLUDE = [
   TEMPSRC_DIR,
+  "src",
   "src/lib/wren",
   "src/lib/wren/vm",
   "src/lib/wren/optional",
 ]
 SOURCE = [
   "src/*.c",
+  "src/module/*.c",
   "src/lib/vec/*.c",
   "src/lib/map/*.c",
   "src/lib/sera/*.c",

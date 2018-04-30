@@ -27,15 +27,10 @@ The project also includes 3rd party source files, the full licenses for these
 files can be found through their corresponding URL or in the files themselves.
 An overview of the source files are as follows:
 
-src/lib/lua51/*
-. Lua5.1
+src/lib/wren/*
+. The Wren Programming Language
 . MIT license
-. http://www.lua.org/
-
-src/lib/lextlib_lua52.h
-. Lua Extension Library header file for lua5.2 C API -> Lua5.1
-. MIT license
-. https://github.com/devurandom/lextlib/
+. http://wren.io
 
 src/lib/stb_image.h
 . Sean Barrett's image loading library
@@ -66,6 +61,11 @@ src/lib/vec/*
 . Dynamic array implementation
 . MIT license
 . https://github.com/rxi/vec
+
+src/lib/map/*
+. A type-safe hash map implementation for C
+. MIT license
+. https://github.com/rxi/map
 
 src/lib/sera/*
 . 2d software graphics lib

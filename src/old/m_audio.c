@@ -17,7 +17,7 @@ static double samplerate = 0;
 
 
 static void audioCallback(void *udata, Uint8 *stream, int size) {
-  lua_State *L = udata;
+  WrenVM *W = udata;
   int16_t *buffer = (void*) stream;
   int len = size >> 1;
   int i;
@@ -35,7 +35,7 @@ static void audioCallback(void *udata, Uint8 *stream, int size) {
 }
 
 
-static int l_audio_init(lua_State *L) {
+static int l_audio_init(WrenVM *W) {
   int rate = luaL_optint(L, 1, 44100);
   int bufferSize = luaL_optint(L, 2, 44100);
   if (inited) {
@@ -67,7 +67,7 @@ static int l_audio_init(lua_State *L) {
 }
 
 
-int luaopen_audio(lua_State *L) {
+int luaopen_audio(WrenVM *W) {
   luaL_Reg reg[] = {
     { "init",   l_audio_init   },
     { NULL, NULL }

@@ -19,25 +19,31 @@
 
 #define CLASS_NAME BUFFER_CLASS_NAME
 
-Buffer *buffer_new(lua_State *L) {
-  Buffer *self = lua_newuserdata(L, sizeof(*self));
-  luaL_setmetatable(L, CLASS_NAME);
-  memset(self, 0, sizeof(*self));
-  return self;
+sr_Buffer *buffer_new(WrenVM *W) {
+  sr_Buffer *buf = wrenSetSlotNewForeign(W, 0, 0, sizeof(*buf));
+  memset(buf, 0, sizeof(*buf));
+  return buf;
 }
 
 
-static sr_Pixel getColorArgs(lua_State *L, int first, int defzero) {
+static sr_Pixel getColorArgs(WrenVM *W, int first, int defzero) {
   float n = defzero ? 0. : 1.;
   int r = luaL_optnumber(L, first + 0, n) * 256;
   int g = luaL_optnumber(L, first + 1, n) * 256;
   int b = luaL_optnumber(L, first + 2, n) * 256;
   int a = luaL_optnumber(L, first + 3, n) * 256;
+  
+  CHECK_TYPE(W, WREN_TYPE_BOOL, 1, "expected List");
+  wrenGetListElement(W, 1, 0, 2);
+  CHECK_TYPE(W, WREN_TYPE_BOOL, 2, "expected Num at index 0");
+  wrenGetListElement(W, 1, 1, 3);
+  CHECK_TYPE(W, WREN_TYPE_BOOL, 3, "expected Num at index 1");
+
   return sr_pixel(r, g, b, a);
 }
 
 
-static sr_Rect getRectArg(lua_State *L, int idx) {
+static sr_Rect getRectArg(WrenVM *W, int idx) {
   if (lua_type(L, idx) != LUA_TTABLE) {
     luaL_argerror(L, idx, "expected table");
   }
@@ -51,7 +57,7 @@ static sr_Rect getRectArg(lua_State *L, int idx) {
 }
 
 
-static void checkSubRect(lua_State *L, int idx, sr_Buffer *b, sr_Rect *r) {
+static void checkSubRect(WrenVM *W, int idx, sr_Buffer *b, sr_Rect *r) {
   if (r->x < 0 || r->y < 0 || r->x + r->w > b->w || r->y + r->h > b->h) {
     luaL_argerror(L, idx, "sub rectangle out of bounds");
   }
@@ -76,7 +82,7 @@ static int loadBufferFromMemory(Buffer *self, const void *data, int len) {
 }
 
 
-static int l_buffer_fromFile(lua_State *L) {
+static int l_buffer_fromFile(WrenVM *W) {
   const char *filename = luaL_checkstring(L, 1);
   Buffer *self = buffer_new(L);
   size_t len;
@@ -93,7 +99,7 @@ static int l_buffer_fromFile(lua_State *L) {
 }
 
 
-static int l_buffer_fromString(lua_State *L) {
+static int l_buffer_fromString(WrenVM *W) {
   size_t len;
   const char *str = luaL_checklstring(L, 1, &len);
   Buffer *self = buffer_new(L);
@@ -105,7 +111,7 @@ static int l_buffer_fromString(lua_State *L) {
 }
 
 
-static int l_buffer_fromBlank(lua_State *L) {
+static int l_buffer_fromBlank(WrenVM *W) {
   int w = luaL_checknumber(L, 1);
   int h = luaL_checknumber(L, 2);
   if (w <= 0) luaL_argerror(L, 1, "expected width greater than 0");
@@ -120,7 +126,7 @@ static int l_buffer_fromBlank(lua_State *L) {
 }
 
 
-static int l_buffer_clone(lua_State *L) {
+static int l_buffer_clone(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   Buffer *b = buffer_new(L);
   b->buffer = sr_cloneBuffer(self->buffer);
@@ -131,7 +137,7 @@ static int l_buffer_clone(lua_State *L) {
 }
 
 
-static int l_buffer_gc(lua_State *L) {
+static int l_buffer_gc(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   if (self->buffer) {               /* self->buffer may be NULL if  */
     sr_destroyBuffer(self->buffer); /* an error was raised in the   */
@@ -140,27 +146,27 @@ static int l_buffer_gc(lua_State *L) {
 }
 
 
-static int l_buffer_getWidth(lua_State *L) {
+static int l_buffer_getWidth(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   lua_pushnumber(L, self->buffer->w);
   return 1;
 }
 
-static int l_buffer_getHeight(lua_State *L) {
+static int l_buffer_getHeight(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   lua_pushnumber(L, self->buffer->h);
   return 1;
 }
 
 
-static int l_buffer_setAlpha(lua_State *L) {
+static int l_buffer_setAlpha(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   sr_setAlpha(self->buffer, luaL_optnumber(L, 2, 1.) * 0xff);
   return 0;
 }
 
 
-static int l_buffer_setBlend(lua_State *L) {
+static int l_buffer_setBlend(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   const char *str = luaL_optstring(L, 2, "alpha");
   int mode = 0;
@@ -179,14 +185,14 @@ static int l_buffer_setBlend(lua_State *L) {
 }
 
 
-static int l_buffer_setColor(lua_State *L) {
+static int l_buffer_setColor(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   sr_setColor(self->buffer, getColorArgs(L, 2, 0));
   return 0;
 }
 
 
-static int l_buffer_setClip(lua_State *L) {
+static int l_buffer_setClip(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int x = luaL_checkinteger(L, 2);
   int y = luaL_checkinteger(L, 3);
@@ -197,21 +203,21 @@ static int l_buffer_setClip(lua_State *L) {
 }
 
 
-static int l_buffer_reset(lua_State *L) {
+static int l_buffer_reset(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   sr_reset(self->buffer);
   return 0;
 }
 
 
-static int l_buffer_clear(lua_State *L) {
+static int l_buffer_clear(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   sr_clear(self->buffer, getColorArgs(L, 2, 1));
   return 0;
 }
 
 
-static int l_buffer_getPixel(lua_State *L) {
+static int l_buffer_getPixel(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int x = luaL_checknumber(L, 2);
   int y = luaL_checknumber(L, 3);
@@ -224,7 +230,7 @@ static int l_buffer_getPixel(lua_State *L) {
 }
 
 
-static int l_buffer_setPixel(lua_State *L) {
+static int l_buffer_setPixel(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int x = luaL_checknumber(L, 2);
   int y = luaL_checknumber(L, 3);
@@ -233,7 +239,7 @@ static int l_buffer_setPixel(lua_State *L) {
 }
 
 
-static int l_buffer_copyPixels(lua_State *L) {
+static int l_buffer_copyPixels(WrenVM *W) {
   sr_Rect sub;
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   Buffer *src  = luaL_checkudata(L, 2, CLASS_NAME);
@@ -253,7 +259,7 @@ static int l_buffer_copyPixels(lua_State *L) {
 }
 
 
-static int l_buffer_noise(lua_State *L) {
+static int l_buffer_noise(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int seed = luaL_optnumber(L, 2, rand());
   int low  = luaL_optnumber(L, 3, 0) * 256;
@@ -264,7 +270,7 @@ static int l_buffer_noise(lua_State *L) {
 }
 
 
-static int l_buffer_floodFill(lua_State *L) {
+static int l_buffer_floodFill(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int x = luaL_checknumber(L, 2);
   int y = luaL_checknumber(L, 3);
@@ -274,7 +280,7 @@ static int l_buffer_floodFill(lua_State *L) {
 }
 
 
-static int l_buffer_drawPixel(lua_State *L) {
+static int l_buffer_drawPixel(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int x = luaL_checknumber(L, 2);
   int y = luaL_checknumber(L, 3);
@@ -284,7 +290,7 @@ static int l_buffer_drawPixel(lua_State *L) {
 }
 
 
-static int l_buffer_drawLine(lua_State *L) {
+static int l_buffer_drawLine(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int x1 = luaL_checknumber(L, 2);
   int y1 = luaL_checknumber(L, 3);
@@ -295,7 +301,7 @@ static int l_buffer_drawLine(lua_State *L) {
   return 0;
 }
 
-static int l_buffer_drawRect(lua_State *L) {
+static int l_buffer_drawRect(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int x = luaL_checknumber(L, 2);
   int y = luaL_checknumber(L, 3);
@@ -307,7 +313,7 @@ static int l_buffer_drawRect(lua_State *L) {
 }
 
 
-static int l_buffer_drawBox(lua_State *L) {
+static int l_buffer_drawBox(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int x = luaL_checknumber(L, 2);
   int y = luaL_checknumber(L, 3);
@@ -319,7 +325,7 @@ static int l_buffer_drawBox(lua_State *L) {
 }
 
 
-static int l_buffer_drawCircle(lua_State *L) {
+static int l_buffer_drawCircle(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int x = luaL_checknumber(L, 2);
   int y = luaL_checknumber(L, 3);
@@ -330,7 +336,7 @@ static int l_buffer_drawCircle(lua_State *L) {
 }
 
 
-static int l_buffer_drawRing(lua_State *L) {
+static int l_buffer_drawRing(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, CLASS_NAME);
   int x = luaL_checknumber(L, 2);
   int y = luaL_checknumber(L, 3);
@@ -341,7 +347,7 @@ static int l_buffer_drawRing(lua_State *L) {
 }
 
 
-static int l_buffer_drawBuffer(lua_State *L) {
+static int l_buffer_drawBuffer(WrenVM *W) {
   int hasSub = 0;
   sr_Rect sub;
   sr_Transform t;
@@ -364,7 +370,7 @@ static int l_buffer_drawBuffer(lua_State *L) {
 }
 
 
-int luaopen_buffer(lua_State *L) {
+int luaopen_buffer(WrenVM *W) {
   luaL_Reg reg[] = {
     { "__gc",           l_buffer_gc             },
     { "fromFile",       l_buffer_fromFile       },

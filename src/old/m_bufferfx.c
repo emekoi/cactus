@@ -40,7 +40,7 @@ static int fxsin(int n) {
   return tableSin[n & FX_MASK];
 }
 
-static sr_Pixel getColorFromTable(lua_State *L, int idx) {
+static sr_Pixel getColorFromTable(WrenVM *W, int idx) {
   if (lua_isnoneornil(L, idx) || lua_type(L, idx) != LUA_TTABLE) {
     luaL_error(L, "expected table");
   }
@@ -62,14 +62,14 @@ static sr_Pixel getColorFromTable(lua_State *L, int idx) {
   return px;
 }
 
-static void checkBufferSizesMatch(lua_State *L, Buffer *a, Buffer *b) {
+static void checkBufferSizesMatch(WrenVM *W, Buffer *a, Buffer *b) {
   if (a->buffer->w != b->buffer->w || a->buffer->h != b->buffer->h) {
     luaL_error(L, "expected buffer sizes to match");
   }
 }
 
 
-static int l_bufferfx_desaturate(lua_State *L) {
+static int l_bufferfx_desaturate(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, BUFFER_CLASS_NAME);
   int amount = luaL_optnumber(L, 2, 1.) * 0xff;
   amount = CLAMP(amount, 0, 0xff);
@@ -96,7 +96,7 @@ static int l_bufferfx_desaturate(lua_State *L) {
 }
 
 
-static int l_bufferfx_mask(lua_State *L) {
+static int l_bufferfx_mask(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, BUFFER_CLASS_NAME);
   Buffer *mask = luaL_checkudata(L, 2, BUFFER_CLASS_NAME);
   const char *channel = luaL_optstring(L, 3, "a");
@@ -121,7 +121,7 @@ static int l_bufferfx_mask(lua_State *L) {
 }
 
 
-static int l_bufferfx_palette(lua_State *L) {
+static int l_bufferfx_palette(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, BUFFER_CLASS_NAME);
   if (lua_isnoneornil(L, 2) || lua_type(L, 2) != LUA_TTABLE) {
     luaL_argerror(L, 2, "expected table");
@@ -159,7 +159,7 @@ static unsigned long long xorshift64star(unsigned long long *x) {
   return *x * 2685821657736338717ULL;
 }
 
-static int l_bufferfx_dissolve(lua_State *L) {
+static int l_bufferfx_dissolve(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, BUFFER_CLASS_NAME);
   unsigned long long s = 1ULL << 32;
   unsigned amount;
@@ -178,7 +178,7 @@ static int l_bufferfx_dissolve(lua_State *L) {
 }
 
 
-static int l_bufferfx_wave(lua_State *L) {
+static int l_bufferfx_wave(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, BUFFER_CLASS_NAME);
   Buffer *src = luaL_checkudata(L, 2, BUFFER_CLASS_NAME);
   checkBufferSizesMatch(L, self, src);
@@ -214,7 +214,7 @@ static int getChannel(sr_Pixel px, char channel) {
   return 0;
 }
 
-static int l_bufferfx_displace(lua_State *L) {
+static int l_bufferfx_displace(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, BUFFER_CLASS_NAME);
   Buffer *src = luaL_checkudata(L, 2, BUFFER_CLASS_NAME);
   Buffer *map = luaL_checkudata(L, 3, BUFFER_CLASS_NAME);
@@ -242,7 +242,7 @@ static int l_bufferfx_displace(lua_State *L) {
 }
 
 
-static int l_bufferfx_blur(lua_State *L) {
+static int l_bufferfx_blur(WrenVM *W) {
   Buffer *self = luaL_checkudata(L, 1, BUFFER_CLASS_NAME);
   Buffer *src = luaL_checkudata(L, 2, BUFFER_CLASS_NAME);
   int radiusx = luaL_checknumber(L, 3);
@@ -296,7 +296,7 @@ static int l_bufferfx_blur(lua_State *L) {
 }
 
 
-int luaopen_bufferfx(lua_State *L) {
+int luaopen_bufferfx(WrenVM *W) {
   luaL_Reg reg[] = {
     { "desaturate", l_bufferfx_desaturate },
     { "palette",    l_bufferfx_palette    },

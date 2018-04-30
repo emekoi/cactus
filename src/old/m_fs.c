@@ -11,7 +11,7 @@
 #include "fs.h"
 
 
-static void checkError(lua_State *L, int err, const char *str) {
+static void checkError(WrenVM *W, int err, const char *str) {
   if (!err) return;
   if (err == FS_ENOWRITEPATH || !str) {
     luaL_error(L, "%s", fs_errorStr(err));
@@ -20,7 +20,7 @@ static void checkError(lua_State *L, int err, const char *str) {
 }
 
 
-static int l_fs_mount(lua_State *L) {
+static int l_fs_mount(WrenVM *W) {
   const char *path = luaL_checkstring(L, 1);
   int res = fs_mount(path);
   if (res != FS_ESUCCESS) {
@@ -33,14 +33,14 @@ static int l_fs_mount(lua_State *L) {
 }
 
 
-static int l_fs_unmount(lua_State *L) {
+static int l_fs_unmount(WrenVM *W) {
   const char *path = luaL_checkstring(L, 1);
   fs_unmount(path);
   return 0;
 }
 
 
-static int l_fs_setWritePath(lua_State *L) {
+static int l_fs_setWritePath(WrenVM *W) {
   const char *path = luaL_checkstring(L, 1);
   int res = fs_setWritePath(path);
   checkError(L, res, path);
@@ -48,14 +48,14 @@ static int l_fs_setWritePath(lua_State *L) {
 }
 
 
-static int l_fs_exists(lua_State *L) {
+static int l_fs_exists(WrenVM *W) {
   const char *filename = luaL_checkstring(L, 1);
   lua_pushboolean(L, fs_exists(filename));
   return 1;
 }
 
 
-static int l_fs_getSize(lua_State *L) {
+static int l_fs_getSize(WrenVM *W) {
   const char *filename = luaL_checkstring(L, 1);
   size_t sz;
   int res = fs_size(filename, &sz);
@@ -65,7 +65,7 @@ static int l_fs_getSize(lua_State *L) {
 }
 
 
-static int l_fs_getModified(lua_State *L) {
+static int l_fs_getModified(WrenVM *W) {
   const char *filename = luaL_checkstring(L, 1);
   unsigned t;
   int res = fs_modified(filename, &t);
@@ -75,7 +75,7 @@ static int l_fs_getModified(lua_State *L) {
 }
 
 
-static int l_fs_read(lua_State *L) {
+static int l_fs_read(WrenVM *W) {
   const char *filename = luaL_checkstring(L, 1);
   size_t len;
   char *data = fs_read(filename, &len);
@@ -88,14 +88,14 @@ static int l_fs_read(lua_State *L) {
 }
 
 
-static int l_fs_isDir(lua_State *L) {
+static int l_fs_isDir(WrenVM *W) {
   const char *filename = luaL_checkstring(L, 1);
   lua_pushboolean(L, fs_isDir(filename));
   return 1;
 }
 
 
-static int l_fs_listDir(lua_State *L) {
+static int l_fs_listDir(WrenVM *W) {
   const char *path = luaL_checkstring(L, 1);
   fs_FileListNode *list = fs_listDir(path);
   lua_newtable(L);
@@ -112,7 +112,7 @@ static int l_fs_listDir(lua_State *L) {
 }
 
 
-static int l_fs_write(lua_State *L) {
+static int l_fs_write(WrenVM *W) {
   const char *filename = luaL_checkstring(L, 1);
   size_t len;
   const char *data = luaL_checklstring(L, 2, &len);
@@ -122,7 +122,7 @@ static int l_fs_write(lua_State *L) {
 }
 
 
-static int l_fs_append(lua_State *L) {
+static int l_fs_append(WrenVM *W) {
   const char *filename = luaL_checkstring(L, 1);
   size_t len;
   const char *data = luaL_checklstring(L, 2, &len);
@@ -132,7 +132,7 @@ static int l_fs_append(lua_State *L) {
 }
 
 
-static int l_fs_delete(lua_State *L) {
+static int l_fs_delete(WrenVM *W) {
   const char *filename = luaL_checkstring(L, 1);
   int res = fs_delete(filename);
   if (res != FS_ESUCCESS) {
@@ -145,7 +145,7 @@ static int l_fs_delete(lua_State *L) {
 }
 
 
-static int l_fs_makeDirs(lua_State *L) {
+static int l_fs_makeDirs(WrenVM *W) {
   const char *path = luaL_checkstring(L, 1);
   int res = fs_makeDirs(path);
   if (res != FS_ESUCCESS) {
@@ -155,7 +155,7 @@ static int l_fs_makeDirs(lua_State *L) {
 }
 
 
-int luaopen_fs(lua_State *L) {
+int luaopen_fs(WrenVM *W) {
   luaL_Reg reg[] = {
     { "mount",        l_fs_mount        },
     { "unmount",      l_fs_unmount      },
