@@ -11,6 +11,7 @@
 #include <string.h>
 #include <SDL2/SDL.h>
 #include "lib/sera/sera.h"
+#include "lib/map/map.h"
 #include "util.h"
 #include "conf.h"
 #include "wren.h"
@@ -19,7 +20,7 @@
 #include "fs.h"
 
 extern double m_graphics_maxFps;
-extern Buffer* m_graphics_screen;
+// extern Buffer* m_graphics_screen;
 extern SDL_Window *m_graphics_window;
 
 static WrenVM *W;
@@ -32,6 +33,7 @@ static void shutdown(void) {
   // SDL_UnlockMutex(luaMutex);
   SDL_Quit();
 #endif
+  wrenFreeVM(W);
   map_deinit(&(foreignData.methods));
   map_deinit(&(foreignData.classes));
   SDL_DestroyWindow(m_graphics_window);
@@ -40,6 +42,8 @@ static void shutdown(void) {
 void wren_open_cactus(WrenVM *W);
 
 int main(int argc, char **argv) {
+  UNUSED(argc);
+  UNUSED(argv);
   atexit(shutdown);
 
   /* Init lua state mutex and pass to sources module */
@@ -56,9 +60,10 @@ int main(int argc, char **argv) {
 
   configuration.userData = &foreignData;
   configuration.writeFn = wren_writeFn;
+  configuration.errorFn = wren_errorFn;
   configuration.loadModuleFn = wren_loadModuleFn;
   configuration.bindForeignMethodFn = wren_bindForeignMethod;
-  configuration.bindForeignClass = wren_bindForeignClass;
+  configuration.bindForeignClassFn = wren_bindForeignClass;
 
   /* Init Wren VM */
   W = wrenNewVM(&configuration);
@@ -82,39 +87,20 @@ int main(int argc, char **argv) {
   /* Init embedded scripts -- these should be ordered in the array in the order
    * we want them loaded; init.lua should always be last since it depends on
    * all the other modules */
-  // #include "buffer_lua.h"
-  // #include "time_lua.h"
-  // #include "graphics_lua.h"
-  // #include "keyboard_lua.h"
-  // #include "mouse_lua.h"
-  // #include "debug_lua.h"
-  // #include "system_lua.h"
-  // #include "init_lua.h"
+  #include "cactus_wren.h"
 
-  // struct {
-  //   const char *name, *data; int size;
-  // } items[] = {
-  //   { "buffer.lua",     buffer_lua,     sizeof(buffer_lua)    },
-  //   { "time.lua",       time_lua,       sizeof(time_lua)      },
-  //   { "graphics.lua",   graphics_lua,   sizeof(graphics_lua)  },
-  //   { "keyboard.lua",   keyboard_lua,   sizeof(keyboard_lua)  },
-  //   { "mouse.lua",      mouse_lua,      sizeof(mouse_lua)     },
-  //   { "debug.lua",      debug_lua,      sizeof(debug_lua)     },
-  //   { "system.lua",     system_lua,     sizeof(system_lua)    },
-  //   { "init.lua",       init_lua,       sizeof(init_lua)      },
-  //   { NULL, NULL, 0 }
-  // };
-
+  struct {
+    const char *name, *data; int size;
+  } items[] = {
+    { "cactus.wren", cactus_wren, sizeof(cactus_wren) },
+    { NULL, NULL, 0 }
+  };
+  
   // ASSERT(SDL_LockMutex(luaMutex) == 0);
-  // int i;
-  // for (i = 0; items[i].name; i++) {
-  //   int err = luaL_loadbuffer(L, items[i].data, items[i].size, items[i].name);
-  //   if (err || lua_pcall(L, 0, 0, 0) != 0) {
-  //     const char *str = lua_tostring(L, -1);
-  //     fprintf(stderr, "error: %s\n", str);
-  //     abort();
-  //   }
-  // }
+  for (int i = 0; items[i].name; i++) {
+    int err = wrenInterpret(W, items[i].data);
+    if (err != WREN_RESULT_SUCCESS) abort();
+  }
   // ASSERT(SDL_UnlockMutex(luaMutex) == 0);
 
   /* Do main loop */

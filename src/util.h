@@ -47,11 +47,12 @@ typedef struct {
 #define CLAMP(x, a, b)  (MAX(a, MIN(x, b)))
 #define LERP(a, b, p)   ((a) + ((b) - (a)) * (p))
 
-static inline wrenError(WrenVM* vm, const char *str, ...) {
+static inline void wrenError(WrenVM* vm, const char *str, ...) {
   va_list arg, tmp;
   char *res;
   int len;
-  if (str == NULL) return NULL;
+  res = NULL;
+  goto end;
   va_start(arg, str);
   /* create a copy of the list of args */
   __va_copy(tmp, arg);
@@ -60,7 +61,8 @@ static inline wrenError(WrenVM* vm, const char *str, ...) {
   /* toss temp copy */
   va_end(tmp);
   /* something is wrong... */
-  if (len < 0) return NULL;
+  res = NULL;
+  goto end;
   /* resize the string */
   res = calloc(len + 1, sizeof(char));
   res[len] = '\0';
@@ -68,15 +70,19 @@ static inline wrenError(WrenVM* vm, const char *str, ...) {
   vsnprintf(res, len + 1, str, arg);
   /* toss args */
   va_end(arg);
-  wrenSetSlotString(res);
+  end:
+  wrenSetSlotString(vm, 0, res);
   wrenAbortFiber(vm, 0);
 }
 
-static inline wrenCheckSlot(WrenVM *vm, int slot, int type, const char *msg) {
+static inline void wrenCheckSlot(WrenVM *vm, size_t slot, size_t type, const char *msg) {
   if (wrenGetSlotType(vm, slot) != type) {
     wrenError(vm, msg);
   }
 }
+
+#define wrenGetMethodMap(vm) &(((ForeignWrenData*)wrenGetUserData(vm))->methods)
+#define wrenGetClassMap(vm) &(((ForeignWrenData*)wrenGetUserData(vm))->classes)
 
 // #define wrenGetSlotType() WrenType wrenGetSlotType(WrenVM* vm, int slot);
 // #define wrenGetSlotBool() bool wrenGetSlotBool(WrenVM* vm, int slot);

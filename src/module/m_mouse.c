@@ -8,6 +8,7 @@
 
 #include <SDL2/SDL.h>
 #include "wren.h"
+#include "util.h"
 
 #define CLASS_NAME "Mouse"
 
@@ -33,7 +34,7 @@ static void w_mouse_setPosition(WrenVM *W) {
 
 
 void wren_open_mouse(WrenVM *W) {
-  WrenForeignMethodFn_Map *methods = &(wrenGetUserData(vm)->methods);
+  WrenForeignMethodFn_Map *methods = wrenGetMethodMap(W);
   map_set(methods, "cactus" CLASS_NAME "visible_=(_)s",  w_mouse_setVisible);
   map_set(methods, "cactus" CLASS_NAME "position_=(_)s", w_mouse_setPosition);
 }

@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include "wren.h"
+#include "util.h"
 #include "fs.h"
 
 #define CLASS_NAME "FS"
@@ -110,7 +111,6 @@ static void w_fs_listDir(WrenVM *W) {
   fs_FileListNode *list = fs_listDir(path);
   wrenEnsureSlots(W, 2);
   wrenSetSlotNewList(W, 0);
-  int i = 1;
   fs_FileListNode *n = list;
   for (int i = 0; n; i++) {
     wrenSetSlotString(W, 1, n->name);
@@ -125,7 +125,7 @@ static void w_fs_write(WrenVM *W) {
   wrenCheckSlot(W, 1, WREN_TYPE_STRING, "expected String");
   wrenCheckSlot(W, 2, WREN_TYPE_STRING, "expected String");
   const char *filename = wrenGetSlotString(W, 1);
-  size_t len;
+  int len;
   const char *data = wrenGetSlotBytes(W, 2, &len);
   int res = fs_write(filename, data, len);
   checkError(W, res, filename);
@@ -138,7 +138,7 @@ static void w_fs_append(WrenVM *W) {
   wrenCheckSlot(W, 1, WREN_TYPE_STRING, "expected String");
   wrenCheckSlot(W, 2, WREN_TYPE_STRING, "expected String");
   const char *filename = wrenGetSlotString(W, 1);
-  size_t len;
+  int len;
   const char *data = wrenGetSlotBytes(W, 2, &len);
   int res = fs_append(filename, data, len);
   checkError(W, res, filename);
@@ -168,7 +168,7 @@ static void w_fs_makeDirs(WrenVM *W) {
 
 
 void wren_open_fs(WrenVM *W) {
-  WrenForeignMethodFn_Map *methods = &(wrenGetUserData(vm)->methods);
+  WrenForeignMethodFn_Map *methods = wrenGetMethodMap(W);
   map_set(methods, "cactus" CLASS_NAME "mount(_)s",        w_fs_mount);
   map_set(methods, "cactus" CLASS_NAME "unmount(_)s",      w_fs_unmount);
   map_set(methods, "cactus" CLASS_NAME "setWritePath(_)s", w_fs_setWritePath);

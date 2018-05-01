@@ -2,7 +2,7 @@
 import os, sys, shutil, platform, time
 import cembed
 
-OUTPUT = "bin/sol"
+OUTPUT = "bin/cactus"
 EMBED_DIR = "src/embed"
 TEMPSRC_DIR = ".tempsrc"
 COMPILER = "gcc"
@@ -77,7 +77,7 @@ def main():
     FLAGS += [ "-g"  ]
   else:
     FLAGS += [ "-O3" ]
-    DEFINE += [ "SOL_RELEASE" ]
+    DEFINE += [ "CACTUS_RELEASE" ]
 
   # Handle "nojit" option -- compile with normal embedded Lua instead
 

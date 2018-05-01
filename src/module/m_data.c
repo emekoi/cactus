@@ -17,17 +17,16 @@
 #define CLASS_NAME "Data"
 
 
-static void *newData(WrenVM *W) {
+static void newData(WrenVM *W) {
   Data *self = wrenSetSlotNewForeign(W, 0, 0, sizeof(*self));
   memset(self, 0, sizeof(*self));
   wrenCheckSlot(W, 1, WREN_TYPE_STRING, "expected String");
-  self->data = wrenGetSlotBytes(W, 1, &self->len);
+  self->data = (void *)wrenGetSlotBytes(W, 1, &self->len);
 }
 
 
-static void freeData(WrenVM *W) {
-  Data *self = wrenGetSlotForeign(W, 1);
-  free(self->data);
+static void freeData(void *data) {
+  free(((Data *)data)->data);
 }
 
 
@@ -72,10 +71,11 @@ static void w_data_toString(WrenVM *W) {
 
 
 void wren_open_data(WrenVM *W) {
-  WrenForeignMethodFn_Map *methods = &(wrenGetUserData(vm)->methods);
-  WrenForeignClassMethods_Map *classes = &(wrenGetUserData(vm)->classes);
+  WrenForeignMethodFn_Map *methods = wrenGetMethodMap(W);
+  WrenForeignClassMethods_Map *classes = wrenGetClassMap(W);
 
-  map_set(classes, "cactus" CLASS_NAME, { newData, freeData });
+  WrenForeignClassMethods foreign = { newData, freeData };
+  map_set(classes, "cactus" CLASS_NAME, foreign);
 
   map_set(methods, "cactus" CLASS_NAME "fromFile(_)s",   w_data_fromFile);
   map_set(methods, "cactus" CLASS_NAME "fromString(_)s", w_data_fromString);

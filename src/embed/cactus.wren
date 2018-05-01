@@ -242,7 +242,7 @@ foreign class Buffer {
 
 // wren_open_source,
 foreign class Source {
-  construct new_()
+  construct new_() {}
 	foreign static fromData(data)
 	foreign static fromBlank()
 
@@ -263,7 +263,7 @@ foreign class Source {
 
 // wren_open_data,
 foreign class Data {
-  construct new_(data)
+  construct new_(data) {}
 	foreign static fromFile(file)
 	foreign static fromString(str)
 
@@ -274,7 +274,7 @@ foreign class Data {
 
 // wren_open_gif,
 foreign class Gif {
-	construct new(width, height, ncolors)
+	construct new(width, height, ncolors) {}
 	foreign update(buf, delay)
 	foreign close()
 }
@@ -284,7 +284,7 @@ class Cactus {
   foreign static init_(config)
 
 	foreign static version
-  
+
   foreign static poll()
   foreign static info(info)
 }
@@ -336,23 +336,23 @@ class Mouse {
 	foreign static visible_=(visible)
 	foreign static position_=(position)
 
-  static visible { _visible }
+  static visible { __visible }
 
-	static position { [_x, _y] }
+	static position { [__x, __y] }
 
-  static x { _x }
+  static x { __x }
 
-  static y { _y }
+  static y { __y }
 
 	static visible=(visible) {
 		this.visible_(visible)
-		_visible = visible
+		__visible = visible
 	}
 
 	static position=(position) {
 		this.position_(position)
-		_x = position[0]
-		_y = position[1]
+		__x = position[0]
+		__y = position[1]
 	}
 
 	static x=(x) {

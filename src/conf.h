@@ -35,11 +35,38 @@ static char *concat(const char *str, ...) {
 }
 
 static void wren_writeFn(WrenVM *vm, const char *text) {
+  UNUSED(vm);
 	printf("%s", text);
 }
 
 
+static void wren_errorFn(
+  WrenVM* vm, WrenErrorType type, const char* module,
+  int line, const char* message
+) {
+  switch (type) {
+    case WREN_ERROR_COMPILE: {
+      fprintf(
+        stderr, "compile error:\n  %s:%d: %s\n",
+        module, line, message);
+      break;
+    }
+
+    case WREN_ERROR_RUNTIME: {
+      fprintf(stderr, "runtime error:\n  %s:%d: %s\ntraceback:\n", module, line, message);
+      break;
+    }
+
+    case WREN_ERROR_STACK_TRACE: {
+      fprintf(stderr, "   [%s] %s:%d\n", module, message, line);
+      break;
+    }
+  }
+}
+
+
 static char *wren_loadModuleFn(WrenVM *vm, const char *name) {
+  UNUSED(vm);
   return fs_read(name, NULL);
 }
 
@@ -49,7 +76,7 @@ static WrenForeignMethodFn wren_bindForeignMethod(
   bool isStatic, const char* signature
 ) {
 	char *fullSignature = concat(module, className, signature, isStatic ? "s" : "", NULL);
-	WrenForeignMethodFn_Map *map = &(wrenGetUserData(vm)->methods);
+	WrenForeignMethodFn_Map *map = wrenGetMethodMap(vm);
 	WrenForeignMethodFn *method = map_get(map, fullSignature);
 	free(fullSignature);
 	return method ? *method : NULL;
@@ -59,8 +86,8 @@ static WrenForeignClassMethods wren_bindForeignClass(
   WrenVM* vm, const char* module, const char* className
 ) {
   char *fullSignature = concat(module, className, NULL);
-  WrenForeignClassMethods_Map *map = &(wrenGetUserData(vm)->classes);
+  WrenForeignClassMethods_Map *map = wrenGetClassMap(vm);
   WrenForeignClassMethods *methods = map_get(map, fullSignature);
   free(fullSignature);
-  return methods ? *methods : NULL;
+  return methods ? *methods : (WrenForeignClassMethods){ NULL, NULL};
 }

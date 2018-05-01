@@ -50,7 +50,7 @@ static void w_time_sleep(WrenVM *W) {
 
 void wren_open_time(WrenVM *W) {
   srand(time(NULL));
-  WrenForeignMethodFn_Map *methods = &(wrenGetUserData(vm)->methods);
+  WrenForeignMethodFn_Map *methods = wrenGetMethodMap(W);
   map_set(methods, "cactus" CLASS_NAME "nows",      w_time_getNow);
   map_set(methods, "cactus" CLASS_NAME "times",     w_time_getTime);
   map_set(methods, "cactus" CLASS_NAME "sleep(_)s", w_time_sleep);

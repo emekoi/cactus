@@ -135,7 +135,7 @@ static void w_graphics_getMaxFps(WrenVM *W) {
 
 
 void wren_open_graphics(WrenVM *W) {
-  WrenForeignMethodFn_Map *methods = &(wrenGetUserData(vm)->methods);
+  WrenForeignMethodFn_Map *methods = wrenGetMethodMap(W);
   map_set(methods, "cactus" CLASS_NAME "init_(_, _, _, _, _, _)s", w_graphics_init);
   map_set(methods, "cactus" CLASS_NAME "fullscreens",              w_graphics_getFullscreen);
   map_set(methods, "cactus" CLASS_NAME "maxFpss",                  w_graphics_getMaxFps);
