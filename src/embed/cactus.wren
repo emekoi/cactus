@@ -197,27 +197,33 @@ class Transform {
 
 // wren_open_font,
 foreign class Font {
-	foreign fromFile(file, ptsize)
-	foreign fromString(str, ptsize)
-	foreign fromEmbedded(ptsize)
-	foreign render(text)
-	foreign width
+	foreign static fromFile(file, ptsize)
+	foreign static fromString(str, ptsize)
+	foreign static fromEmbedded(ptsize)
+
+  foreign width
 	foreign height
 	foreign size
+
+	foreign render(text)
 }
 
 // wren_open_buffer,
 foreign class Buffer {
-	foreign fromFile(file)
-  foreign fromString(str)
-  foreign fromBlank(width, height)
-  foreign clone()
+  foreign new_(mode, data)
+	foreign static fromFile(file)
+  foreign static fromString(str)
+  foreign static fromBlank(width, height)
+
   foreign width
   foreign height
+
   foreign alpha=(alpha)
   foreign blend=(mode)
   foreign color=(color)
   foreign clip=(rect)
+
+  foreign clone()
   foreign reset()
   foreign clear(color)
   foreign getPixel(x, y)
@@ -236,16 +242,20 @@ foreign class Buffer {
 
 // wren_open_source,
 foreign class Source {
-	foreign fromData(data)
-	foreign fromBlank()
-	foreign length
-	foreign state
+  construct new_()
+	foreign static fromData(data)
+	foreign static fromBlank()
+
+  foreign length
+  foreign state
+
 	foreign callback=(cb)
 	foreign destination=(dest)
 	foreign gain=(gain)
 	foreign pan=(pan)
 	foreign rate=(rate)
 	foreign loop=(loop)
+
 	foreign play()
 	foreign pause()
 	foreign stop()
@@ -253,24 +263,28 @@ foreign class Source {
 
 // wren_open_data,
 foreign class Data {
-	foreign fromFile(file)
-	foreign fromString(str)
-	foreign length
+  construct new_(data)
+	foreign static fromFile(file)
+	foreign static fromString(str)
+
+  foreign length
+
 	foreign toString()
 }
 
 // wren_open_gif,
 foreign class Gif {
-	foreign new(width, height, ncolors)
+	construct new(width, height, ncolors)
 	foreign update(buf, delay)
 	foreign close()
 }
 
 // wren_open_cactus, + wren_open_system,
 class Cactus {
-  foreign static init__(config)
+  foreign static init_(config)
 
 	foreign static version
+  
   foreign static poll()
   foreign static info(info)
 }
@@ -296,57 +310,60 @@ class FS {
 class Time {
 	foreign static now
 	foreign static time
+
 	foreign static sleep(ms)
 }
 
 // wren_open_graphics,
 class Graphics {
-  foreign static init__(config)
+  foreign static init_(width, height, title, fullscreen, resizable, borderless)
+
+  foreign static fullscreen
+  foreign static maxFps
 
   foreign static size=(size)
-  foreign static setFullscreen=(fullscreen)
-  foreign static fullscreen
+  foreign static fullscreen=(fullscreen)
   foreign static maxFps=(fps)
-  foreign static maxFps
 }
 
 // wren_open_audio,
 class Audio {
-	foreign static init__(rate, buffersize)
+	foreign static init_(rate, buffersize)
 }
 
 // wren_open_mouse
 class Mouse {
-	foreign static visible__=(visible)
-	foreign static position__=(position)
+	foreign static visible_=(visible)
+	foreign static position_=(position)
+
+  static visible { _visible }
+
+	static position { [_x, _y] }
+
+  static x { _x }
+
+  static y { _y }
 
 	static visible=(visible) {
-		this.visible__(visible)
+		this.visible_(visible)
 		_visible = visible
 	}
 
-	static visible { _visible }
-
 	static position=(position) {
-		this.position__(position)
+		this.position_(position)
 		_x = position[0]
 		_y = position[1]
 	}
-
-	static position { [_x, _y] }
 
 	static x=(x) {
 		this.position = [x, this.y]
 	}
 
-	static x { _x }
-
 	static y=(y) {
 		this.position = [this.x, y]
 	}
-
-	static y { _y }
 }
+
 
 // wren_open_bufferfx,
 class BufferFX {

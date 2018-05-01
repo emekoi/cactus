@@ -46,7 +46,7 @@ typedef struct {
 #define MAX(a, b)       ((b) > (a) ? (b) : (a))
 #define CLAMP(x, a, b)  (MAX(a, MIN(x, b)))
 #define LERP(a, b, p)   ((a) + ((b) - (a)) * (p))
-  
+
 static inline wrenError(WrenVM* vm, const char *str, ...) {
   va_list arg, tmp;
   char *res;
@@ -77,5 +77,12 @@ static inline wrenCheckSlot(WrenVM *vm, int slot, int type, const char *msg) {
     wrenError(vm, msg);
   }
 }
+
+// #define wrenGetSlotType() WrenType wrenGetSlotType(WrenVM* vm, int slot);
+// #define wrenGetSlotBool() bool wrenGetSlotBool(WrenVM* vm, int slot);
+// #define wrenGetSlotBytes() const char* wrenGetSlotBytes(WrenVM* vm, int slot, int* length);
+// #define wrenGetSlotDouble() double wrenGetSlotDouble(WrenVM* vm, int slot);
+// #define wrenGetSlotForeign() void* wrenGetSlotForeign(WrenVM* vm, int slot);
+// #define wrenGetSlotString() const char* wrenGetSlotString(WrenVM* vm, int slot);
 
 #endif

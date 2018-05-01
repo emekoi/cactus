@@ -16,7 +16,8 @@
 #include <SDL2/SDL.h>
 #include <time.h>
 
-#define TIME_CLASS_NAME "Time"
+#define CLASS_NAME "Time"
+
 
 static void w_time_getNow(WrenVM *W) {
   double t;
@@ -42,14 +43,15 @@ static void w_time_getTime(WrenVM *W) {
 
 
 static void w_time_sleep(WrenVM *W) {
-  CHECK_TYPE(W, WREN_TYPE_NUM, 1, "expected Num");
+  wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   SDL_Delay(wrenGetSlotDouble(W, 1) * 1000.);
 }
 
 
-void wren_open_time(WrenForeignMethodFn_Map *map) {
+void wren_open_time(WrenVM *W) {
   srand(time(NULL));
-  map_set(map, "cactus" TIME_CLASS_NAME "nows",      w_time_getNow);
-  map_set(map, "cactus" TIME_CLASS_NAME "times",     w_time_getTime);
-  map_set(map, "cactus" TIME_CLASS_NAME "sleep(_)s", w_time_sleep);
+  WrenForeignMethodFn_Map *methods = &(wrenGetUserData(vm)->methods);
+  map_set(methods, "cactus" CLASS_NAME "nows",      w_time_getNow);
+  map_set(methods, "cactus" CLASS_NAME "times",     w_time_getTime);
+  map_set(methods, "cactus" CLASS_NAME "sleep(_)s", w_time_sleep);
 }

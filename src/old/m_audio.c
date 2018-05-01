@@ -35,14 +35,14 @@ static void audioCallback(void *udata, Uint8 *stream, int size) {
 }
 
 
-static int l_audio_init(WrenVM *W) {
-  int rate = luaL_optint(L, 1, 44100);
-  int bufferSize = luaL_optint(L, 2, 44100);
+static int w_audio_init(WrenVM *W) {
+  int rate = luaL_optint(W, 1, 44100);
+  int bufferSize = luaL_optint(W, 2, 44100);
   if (inited) {
-    luaL_error(L, "audio is already inited");
+    luaL_error(W, "audio is already inited");
   }
   if (SDL_Init(SDL_INIT_AUDIO) != 0) {
-    luaL_error(L, "could not init audio");
+    luaL_error(W, "could not init audio");
   }
   /* Init format, open and start */
   SDL_AudioSpec fmt;
@@ -54,7 +54,7 @@ static int l_audio_init(WrenVM *W) {
   fmt.samples   = bufferSize;
   fmt.userdata  = L;
   if (SDL_OpenAudio(&fmt, 0) < 0) {
-    luaL_error(L, "could not open audio");
+    luaL_error(W, "could not open audio");
   }
   /* Set state */
   samplerate = rate;
@@ -69,14 +69,14 @@ static int l_audio_init(WrenVM *W) {
 
 int luaopen_audio(WrenVM *W) {
   luaL_Reg reg[] = {
-    { "init",   l_audio_init   },
-    { NULL, NULL }
+    { "init",   w_audio_init   },
+    { NULW, NULL }
   };
-  luaL_newlib(L, reg);
+  luaL_newlib(W, reg);
   /* Add .master Source field */
   int ref;
   source_getMaster(&ref);
-  lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
-  lua_setfield(L, -2, "master");
+  lua_rawgeti(W, LUA_REGISTRYINDEX, ref);
+  lua_setfield(W, -2, "master");
   return 1;
 }

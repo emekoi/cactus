@@ -1,15 +1,15 @@
 # TODO
 ## Modules
-- [ ] cactus
+- [x] cactus
 - [ ] font
-- [ ] buffer
+- [ ] *buffer*
 - [ ] source
-- [ ] data
+- [x] data
 - [ ] gif
 - [ ] system
-- [ ] fs
+- [x] fs
 - [x] time
-- [ ] graphics
+- [~] graphics
 - [ ] audio
 - [x] mouse
 - [ ] bufferfx

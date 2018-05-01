@@ -23,6 +23,8 @@ extern Buffer* m_graphics_screen;
 extern SDL_Window *m_graphics_window;
 
 static WrenVM *W;
+static ForeignWrenData foreignData;
+static WrenConfiguration configuration;
 // static SDL_mutex *luaMutex;
 
 static void shutdown(void) {
@@ -30,10 +32,12 @@ static void shutdown(void) {
   // SDL_UnlockMutex(luaMutex);
   SDL_Quit();
 #endif
+  map_deinit(&(foreignData.methods));
+  map_deinit(&(foreignData.classes));
   SDL_DestroyWindow(m_graphics_window);
 }
 
-// int luaopen_sol(WrenVM *W);
+void wren_open_cactus(WrenVM *W);
 
 int main(int argc, char **argv) {
   atexit(shutdown);
@@ -43,12 +47,11 @@ int main(int argc, char **argv) {
   // ASSERT(luaMutex);
   // source_setLuaMutex(luaMutex);
   /* Init our foreign data for Wren */
-  ForeignWrenData foreignData;
-  map_init(&foreignData->methods);
-  map_init(&foreignData->classes);
+
+  map_init(&(foreignData.methods));
+  map_init(&(foreignData.classes));
 
   /* Configure Wren VM */
-  WrenConfiguration configuration;
   wrenInitConfiguration(&configuration);
 
   configuration.userData = &foreignData;
@@ -61,7 +64,7 @@ int main(int argc, char **argv) {
   W = wrenNewVM(&configuration);
 
   /* Init main module -- this also inits the submodules */
-  // luaL_requiref(L, "sol", luaopen_sol, 1);
+  wren_open_cactus(W);
 
   /* Push command line arguments */
   // lua_getglobal(L, "sol");

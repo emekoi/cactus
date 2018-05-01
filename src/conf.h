@@ -42,7 +42,7 @@ static void wren_writeFn(WrenVM *vm, const char *text) {
 static char *wren_loadModuleFn(WrenVM *vm, const char *name) {
   return fs_read(name, NULL);
 }
- 
+
 
 static WrenForeignMethodFn wren_bindForeignMethod(
 	WrenVM* vm, const char* module, const char* className,
@@ -59,7 +59,7 @@ static WrenForeignClassMethods wren_bindForeignClass(
   WrenVM* vm, const char* module, const char* className
 ) {
   char *fullSignature = concat(module, className, NULL);
-  WrenForeignMethodFn_Map *map = &(wrenGetUserData(vm)->classes);
+  WrenForeignClassMethods_Map *map = &(wrenGetUserData(vm)->classes);
   WrenForeignClassMethods *methods = map_get(map, fullSignature);
   free(fullSignature);
   return methods ? *methods : NULL;

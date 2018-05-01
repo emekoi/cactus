@@ -31,13 +31,13 @@ enum {
   STATE_CLOSED,
 };
 
-static int l_gif_new(WrenVM *W) {
-  const char *filename = luaL_checkstring(L, 1);
-  int w = luaL_checknumber(L, 2);
-  int h = luaL_checknumber(L, 3);
-  int ncolors = luaL_optnumber(L, 4, 63);
-  Gif *self = lua_newuserdata(L, sizeof(*self));
-  luaL_setmetatable(L, CLASS_NAME);
+static int w_gif_new(WrenVM *W) {
+  const char *filename = luaL_checkstring(W, 1);
+  int w = luaL_checknumber(W, 2);
+  int h = luaL_checknumber(W, 3);
+  int ncolors = luaL_optnumber(W, 4, 63);
+  Gif *self = lua_newuserdata(W, sizeof(*self));
+  luaL_setmetatable(W, CLASS_NAME);
   memset(self, 0, sizeof(*self));
   self->state = STATE_INIT;
   self->w = w;
@@ -52,8 +52,8 @@ static int l_gif_new(WrenVM *W) {
 }
 
 
-static int l_gif_gc(WrenVM *W) {
-  Gif *self = luaL_checkudata(L, 1, CLASS_NAME);
+static int w_gif_gc(WrenVM *W) {
+  Gif *self = luaL_checkudata(W, 1, CLASS_NAME);
   free(self->buf);
   /* Not closed? close now */
   if (self->state == STATE_ACTIVE) {
@@ -63,17 +63,17 @@ static int l_gif_gc(WrenVM *W) {
 }
 
 
-static int l_gif_update(WrenVM *W) {
-  Gif *self = luaL_checkudata(L, 1, CLASS_NAME);
-  Buffer *buf = luaL_checkudata(L, 2, BUFFER_CLASS_NAME);
-  int delay = luaL_checknumber(L, 3);
+static int w_gif_update(WrenVM *W) {
+  Gif *self = luaL_checkudata(W, 1, CLASS_NAME);
+  Buffer *buf = luaL_checkudata(W, 2, BUFFER_CLASS_NAME);
+  int delay = luaL_checknumber(W, 3);
   /* Already closed? Error */
   if (self->state == STATE_CLOSED) {
-    luaL_error(L, "can't update closed gif");
+    luaL_error(W, "can't update closed gif");
   }
   /* Buffer dimensions are okay? */
   if (buf->buffer->w != self->w || buf->buffer->h != self->h) {
-    luaL_error(L, "bad buffer dimensions for gif object, expected %dx%d",
+    luaL_error(W, "bad buffer dimensions for gif object, expected %dx%d",
                self->w, self->h);
   }
   /* Copy pixels to buffer -- jo_gif expects a specific channel byte-order
@@ -94,10 +94,10 @@ static int l_gif_update(WrenVM *W) {
 }
 
 
-static int l_gif_close(WrenVM *W) {
-  Gif *self = luaL_checkudata(L, 1, CLASS_NAME);
+static int w_gif_close(WrenVM *W) {
+  Gif *self = luaL_checkudata(W, 1, CLASS_NAME);
   if (self->state == STATE_CLOSED) {
-    luaL_error(L, "state already closed");
+    luaL_error(W, "state already closed");
   }
   self->state = STATE_CLOSED;
   jo_gif_end(&self->gif);
@@ -107,15 +107,15 @@ static int l_gif_close(WrenVM *W) {
 
 int luaopen_gif(WrenVM *W) {
   luaL_Reg reg[] = {
-    { "__gc",   l_gif_gc     },
-    { "new",    l_gif_new    },
-    { "update", l_gif_update },
-    { "close",  l_gif_close  },
-    { NULL, NULL }
+    { "__gc",   w_gif_gc     },
+    { "new",    w_gif_new    },
+    { "update", w_gif_update },
+    { "close",  w_gif_close  },
+    { NULW, NULL }
   };
-  ASSERT( luaL_newmetatable(L, CLASS_NAME) );
-  luaL_setfuncs(L, reg, 0);
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
+  ASSERT( luaL_newmetatable(W, CLASS_NAME) );
+  luaL_setfuncs(W, reg, 0);
+  lua_pushvalue(W, -1);
+  lua_setfield(W, -2, "__index");
   return 1;
 }

@@ -26,8 +26,8 @@ typedef struct {
 
 
 static Font *newFont(WrenVM *W) {
-  Font *self = lua_newuserdata(L, sizeof(*self));
-  luaL_setmetatable(L, CLASS_NAME);
+  Font *self = lua_newuserdata(W, sizeof(*self));
+  luaL_setmetatable(W, CLASS_NAME);
   memset(self, 0, sizeof(*self));
   return self;
 }
@@ -44,47 +44,47 @@ static const char *loadFontFromMemory(
 }
 
 
-static int l_font_fromFile(WrenVM *W) {
-  const char *filename = luaL_checkstring(L, 1);
-  int fontsize = luaL_optint(L, 2, DEFAULT_FONTSIZE);
+static int w_font_fromFile(WrenVM *W) {
+  const char *filename = luaL_checkstring(W, 1);
+  int fontsize = luaL_optint(W, 2, DEFAULT_FONTSIZE);
   Font *self = newFont(L);
   size_t len;
   void *data = fs_read(filename, &len);
   /* Load new font */
   if (!data) {
-    luaL_error(L, "could not open file '%s'", filename);
+    luaL_error(W, "could not open file '%s'", filename);
   }
   const char *err = loadFontFromMemory(self, data, len, fontsize);
   free(data);
-  if (err) luaL_error(L, "%s", err);
+  if (err) luaL_error(W, "%s", err);
   return 1;
 }
 
 
-static int l_font_fromString(WrenVM *W) {
+static int w_font_fromString(WrenVM *W) {
   size_t len;
-  const char *data = luaL_checklstring(L, 1, &len);
-  int fontsize = luaL_optint(L, 2, DEFAULT_FONTSIZE);
+  const char *data = luaL_checklstring(W, 1, &len);
+  int fontsize = luaL_optint(W, 2, DEFAULT_FONTSIZE);
   Font *self = newFont(L);
   const char *err = loadFontFromMemory(self, data, len, fontsize);
-  if (err) luaL_error(L, "%s", err);
+  if (err) luaL_error(W, "%s", err);
   return 1;
 }
 
 
-static int l_font_fromEmbedded(WrenVM *W) {
+static int w_font_fromEmbedded(WrenVM *W) {
   #include "default_ttf.h"
-  int fontsize = luaL_optint(L, 1, DEFAULT_FONTSIZE);
+  int fontsize = luaL_optint(W, 1, DEFAULT_FONTSIZE);
   Font *self = newFont(L);
   const char *err = loadFontFromMemory(self, default_ttf, sizeof(default_ttf),
                                        fontsize);
-  if (err) luaL_error(L, "%s", err);
+  if (err) luaL_error(W, "%s", err);
   return 1;
 }
 
 
-static int l_font_gc(WrenVM *W) {
-  Font *self = luaL_checkudata(L, 1, CLASS_NAME);
+static int w_font_gc(WrenVM *W) {
+  Font *self = luaL_checkudata(W, 1, CLASS_NAME);
   if (self->font) {
     ttf_destroy(self->font);
   }
@@ -92,21 +92,21 @@ static int l_font_gc(WrenVM *W) {
 }
 
 
-static int l_font_render(WrenVM *W) {
+static int w_font_render(WrenVM *W) {
   int w, h;
-  Font *self = luaL_checkudata(L, 1, CLASS_NAME);
-  const char *str = lua_tostring(L, 2);
+  Font *self = luaL_checkudata(W, 1, CLASS_NAME);
+  const char *str = lua_tostring(W, 2);
   if (!str || *str == '\0') str = " ";
   Buffer *b = buffer_new(L);
   void *data = ttf_render(self->font, str, &w, &h);
   if (!data) {
-    luaL_error(L, "could not render text");
+    luaL_error(W, "could not render text");
   }
   /* Load bitmap and free intermediate 8bit bitmap */
   b->buffer = sr_newBuffer(w, h);
   if (!b->buffer) {
     free(data);
-    luaL_error(L, "could not create buffer");
+    luaL_error(W, "could not create buffer");
   }
   sr_loadPixels8(b->buffer, data, NULL);
   free(data);
@@ -114,43 +114,43 @@ static int l_font_render(WrenVM *W) {
 }
 
 
-static int l_font_getWidth(WrenVM *W) {
-  Font *self = luaL_checkudata(L, 1, CLASS_NAME);
-  const char *str = luaL_checkstring(L, 2);
-  lua_pushnumber(L, ttf_width(self->font, str));
+static int w_font_getWidth(WrenVM *W) {
+  Font *self = luaL_checkudata(W, 1, CLASS_NAME);
+  const char *str = luaL_checkstring(W, 2);
+  lua_pushnumber(W, ttf_width(self->font, str));
   return 1;
 }
 
 
-static int l_font_getHeight(WrenVM *W) {
-  Font *self = luaL_checkudata(L, 1, CLASS_NAME);
-  lua_pushnumber(L, ttf_height(self->font));
+static int w_font_getHeight(WrenVM *W) {
+  Font *self = luaL_checkudata(W, 1, CLASS_NAME);
+  lua_pushnumber(W, ttf_height(self->font));
   return 1;
 }
 
 
-static int l_font_getSize(WrenVM *W) {
-  Font *self = luaL_checkudata(L, 1, CLASS_NAME);
-  lua_pushnumber(L, self->font->ptsize);
+static int w_font_getSize(WrenVM *W) {
+  Font *self = luaL_checkudata(W, 1, CLASS_NAME);
+  lua_pushnumber(W, self->font->ptsize);
   return 1;
 }
 
 
 int luaopen_font(WrenVM *W) {
   luaL_Reg reg[] = {
-    { "__gc",         l_font_gc           },
-    { "fromFile",     l_font_fromFile     },
-    { "fromString",   l_font_fromString   },
-    { "fromEmbedded", l_font_fromEmbedded },
-    { "render",       l_font_render       },
-    { "getWidth",     l_font_getWidth     },
-    { "getHeight",    l_font_getHeight    },
-    { "getSize",      l_font_getSize      },
-    { NULL, NULL }
+    { "__gc",         w_font_gc           },
+    { "fromFile",     w_font_fromFile     },
+    { "fromString",   w_font_fromString   },
+    { "fromEmbedded", w_font_fromEmbedded },
+    { "render",       w_font_render       },
+    { "getWidth",     w_font_getWidth     },
+    { "getHeight",    w_font_getHeight    },
+    { "getSize",      w_font_getSize      },
+    { NULW, NULL }
   };
-  ASSERT( luaL_newmetatable(L, CLASS_NAME) );
-  luaL_setfuncs(L, reg, 0);
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
+  ASSERT( luaL_newmetatable(W, CLASS_NAME) );
+  luaL_setfuncs(W, reg, 0);
+  lua_pushvalue(W, -1);
+  lua_setfield(W, -2, "__index");
   return 1;
 }
