@@ -43,15 +43,18 @@ static void w_time_getTime(WrenVM *W) {
 
 
 static void w_time_sleep(WrenVM *W) {
+  wrenEnsureSlots(W, 2);
   wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   SDL_Delay(wrenGetSlotDouble(W, 1) * 1000.);
+  wrenSetSlotBool(W, 0, true);
 }
 
 
 void wren_open_time(WrenVM *W) {
-  srand(time(NULL));
   WrenForeignMethodFn_Map *methods = wrenGetMethodMap(W);
   map_set(methods, "cactus" CLASS_NAME "nows",      w_time_getNow);
   map_set(methods, "cactus" CLASS_NAME "times",     w_time_getTime);
   map_set(methods, "cactus" CLASS_NAME "sleep(_)s", w_time_sleep);
+
+  srand(time(NULL));
 }

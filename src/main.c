@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
     { "cactus.wren", cactus_wren, sizeof(cactus_wren) },
     { NULL, NULL, 0 }
   };
-  
+
   // ASSERT(SDL_LockMutex(luaMutex) == 0);
   for (int i = 0; items[i].name; i++) {
     int err = wrenInterpret(W, items[i].data);

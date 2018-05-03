@@ -113,16 +113,28 @@ class Config {
 }
 
 class Color {
-	construct pixel(r, g, b, a) {
+	construct new(r, g, b, a) {
 		_r = r
 		_g = g
 		_b = b
 		_a = a
 	}
 
-	construct color(r, g, b) {
-		this.pixel(r, g, b, 1.0)
+	construct new(r, g, b) {
+		Color.new(r, g, b, 1.0)
 	}
+
+  construct new(r, g) {
+    Color.new(r, g, 1.0, 1.0)
+  }
+
+  construct new(r) {
+    Color.new(r, 1.0, 1.0, 1.0)
+  }
+
+  construct new() {
+    Color.new(1.0, 1.0, 1.0, 1.0)
+  }
 
 	r=(r) { _r = r }
 
@@ -141,7 +153,7 @@ class Color {
 	a { _a }
 }
 
-class Rect {
+class Quad {
 	construct new(x, y, width, height) {
 		_x = x
 		_y = y
@@ -197,51 +209,185 @@ class Transform {
 
 // wren_open_font,
 foreign class Font {
+  construct new_(data, ptsize) {}
 	foreign static fromFile(file, ptsize)
 	foreign static fromString(str, ptsize)
 	foreign static fromEmbedded(ptsize)
 
-  foreign width
+  static fromFile(file) {
+    this.fromFile(file, null)
+  }
+
+  static fromString(str) {
+    this.fromString(str, null)
+  }
+
+  static fromEmbedded() {
+    this.fromEmbedded(null)
+  }
+
 	foreign height
 	foreign size
+  foreign getWidth(text)
 
 	foreign render(text)
 }
 
 // wren_open_buffer,
 foreign class Buffer {
-  foreign new_(mode, data)
+  construct new_(mode, data) {}
 	foreign static fromFile(file)
   foreign static fromString(str)
-  foreign static fromBlank(width, height)
+  foreign static fromBlank(w, h)
 
-  foreign width
-  foreign height
+  foreign w
+  foreign h
 
-  foreign alpha=(alpha)
-  foreign blend=(mode)
-  foreign color=(color)
-  foreign clip=(rect)
+  foreign setAlpha_(alpha)
+  foreign setBlend_(mode)
+  foreign setColor_(r, g, b, a)
+  foreign setClip_(x, y, w, h)
 
   foreign clone()
   foreign reset()
-  foreign clear(color)
-  foreign getPixel(x, y)
-  foreign setPixel(color, x, y)
-  foreign copyPixels(src, x, y, sub, sx, sy)
+
+  foreign clear_(r, g, b, a)
+  foreign getPixel_(x, y)
+  foreign setPixel_(r, g, b, a, x, y)
+  foreign copyPixels_(src, x, y, qx, qy, qw, qh, sx, sy)
   foreign noise(seed, low, high, greyscale)
-  foreign floodFill(color, x, y)
-  foreign drawPixel(color, x, y)
-  foreign drawLine(color, x0, y0, x1, y1)
-  foreign drawRect(color, x, y, width, height)
-  foreign drawBox(color, x, y, width, height)
-  foreign drawCircle(color, x, y, radius)
-  foreign drawRing(color, x, y, radius)
-  foreign draw(src, x, y, sub, transform)
+  foreign floodFill_(x, y, r, g, b, a)
+  foreign drawPixel_(x, y, r, g, b, a)
+  foreign drawLine_(x0, y0, x1, y1, r, g, b, a)
+  foreign drawRect_(x, y, width, height, r, g, b, a)
+  foreign drawBox_(x, y, width, height, r, g, b, a)
+  foreign drawCircle_(x, y, radius, r, g, b, a)
+  foreign drawRing_(x, y, radius, r, g, b, a)
+  foreign draw_(src, x, y, qx, qy, qw, qh, ox, oy, r, sx, sy)
+
+  alpha=(alpha) {
+    this.setAlpha_(1.0)
+  }
+
+  blend=(blend) {
+    this.setBlend_(blend)
+  }
+
+  color=(color) {
+    this.setColor_(color.r, color.g, color.b, color.a)
+  }
+
+  clip=(rect) {
+    this.setClip_(rect.x, rect.y, rect.w, rect.h)
+  }
+
+  clear(color) {
+    this.clear_(color.r, color.g, color.b, color.a)
+  }
+
+  getPixel(x, y) {
+    var c = this.getPixel_(x, y)
+    return Color.new(c[0], c[1], c[2], c[4])
+  }
+
+  setPixel(x, y, color) {
+    this.setPixel_(
+      x, y,
+      color.r, color.g, color.b, color.a
+    )
+  }
+
+  copyPixels(src, x, y, quad, sx, sy) {
+    this.copyPixels_(
+      src, x, y,
+      quad.x, quad.y, quad.w, quad.h,
+      sx, sy
+    )
+  }
+
+  copyPixels(src, x, y, sx, sy) {
+    this.copyPixels_(
+      src, x, y,
+      null, null, null, null,
+      sx, sy
+    )
+  }
+
+  floodFill(x, y, color) {
+    this.floodFill_(
+      x, y,
+      color.r, color.g, color.b, color.a
+    )
+  }
+
+  drawPixel(x, y, color) {
+    this.drawPixel_(
+      x, y,
+      color.r, color.g, color.b, color.a
+    )
+  }
+
+  drawLine(x0, y0, x1, y1, color) {
+    this.drawLine_(
+      x0, y0, x1, y1,
+      color.r, color.g, color.b, color.a
+    )
+  }
+
+  drawRect(x, y, width, height, color) {
+    this.drawRect_(
+      x, y, width, height,
+      color.r, color.g, color.b, color.a
+    )
+  }
+
+  drawBox(x, y, width, height, color) {
+    this.drawBox_(
+      x, y, width, height,
+      color.r, color.g, color.b, color.a
+    )
+  }
+
+  drawCircle(x, y, radius, color) {
+    this.drawCircle_(
+      x, y, radius,
+      color.r, color.g, color.b, color.a
+    )
+  }
+
+  drawRing(x, y, radius, color) {
+    this.drawRing_(
+      x, y, radius,
+      color.r, color.g, color.b, color.a
+    )
+  }
+
+  draw(src, x, y, q, t) {
+    this.draw_(
+      src, x, y,
+      q.x, q.y, q.w, q.h,
+      t.ox, t.oy, t.r, t.sx, t.sy
+    )
+  }
+
+  draw(src, x, y, qt) {
+    if (qt is Quad) {
+      this.draw_(
+        src, x, y,
+        qt.x, qt.y, qt.w, qt.h,
+        0, 0, 0, 1, 1
+      )
+    } else if (qt is Transform) {
+      this.draw_(
+        src, x, y, 0, 0, this.w, this.h,
+        qt.ox, qt.oy, qt.r, qt.sx, qt.sy
+      )
+    }
+  }
 }
 
 // wren_open_source,
-foreign class Source {
+/* foreign class Source {
   construct new_() {}
 	foreign static fromData(data)
 	foreign static fromBlank()
@@ -259,7 +405,7 @@ foreign class Source {
 	foreign play()
 	foreign pause()
 	foreign stop()
-}
+} */
 
 // wren_open_data,
 foreign class Data {
@@ -268,25 +414,24 @@ foreign class Data {
 	foreign static fromString(str)
 
   foreign length
-
-	foreign toString()
+	foreign toString
 }
 
 // wren_open_gif,
-foreign class Gif {
+/* foreign class Gif {
 	construct new(width, height, ncolors) {}
 	foreign update(buf, delay)
 	foreign close()
-}
+} */
 
 // wren_open_cactus, + wren_open_system,
 class Cactus {
-  foreign static init_(config)
+  /* foreign static init_(config) */
 
 	foreign static version
 
-  foreign static poll()
-  foreign static info(info)
+  /* foreign static poll()
+  foreign static info(info) */
 }
 
 // wren_open_fs,
@@ -324,12 +469,17 @@ class Graphics {
   foreign static size=(size)
   foreign static fullscreen=(fullscreen)
   foreign static maxFps=(fps)
+
+  static init_(conf) {
+    __canvas = this.init_(conf.width, conf.height, conf.title, conf.fullscreen, conf.resizable, conf.borderless)
+    __canvas.floodFill_(0, 0, Color.new())
+  }
 }
 
 // wren_open_audio,
-class Audio {
+/* class Audio {
 	foreign static init_(rate, buffersize)
-}
+} */
 
 // wren_open_mouse
 class Mouse {
@@ -366,7 +516,7 @@ class Mouse {
 
 
 // wren_open_bufferfx,
-class BufferFX {
+/* class BufferFX {
 	foreign static desaturate(buf, amount)
 	foreign static palette(buf, pal)
 	foreign static dissolve(buf, amount, seed)
@@ -374,4 +524,6 @@ class BufferFX {
 	foreign static wave(buf, src, ax, ay, sx, sy, ox, oy)
 	foreign static displace(buf, src, map, cx, cy, sx, sy)
 	foreign static blur(buf, src, rx, ry)
-}
+} */
+
+Graphics.init_(Config.new())

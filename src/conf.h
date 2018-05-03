@@ -75,9 +75,11 @@ static WrenForeignMethodFn wren_bindForeignMethod(
 	WrenVM* vm, const char* module, const char* className,
   bool isStatic, const char* signature
 ) {
-	char *fullSignature = concat(module, className, signature, isStatic ? "s" : "", NULL);
+  // char *fullSignature = concat(module, className, signature, isStatic ? "s" : "", NULL);
+	char *fullSignature = concat("cactus", className, signature, isStatic ? "s" : "", NULL);
 	WrenForeignMethodFn_Map *map = wrenGetMethodMap(vm);
 	WrenForeignMethodFn *method = map_get(map, fullSignature);
+  printf("%s %p\n", fullSignature, method);
 	free(fullSignature);
 	return method ? *method : NULL;
 }
@@ -85,7 +87,8 @@ static WrenForeignMethodFn wren_bindForeignMethod(
 static WrenForeignClassMethods wren_bindForeignClass(
   WrenVM* vm, const char* module, const char* className
 ) {
-  char *fullSignature = concat(module, className, NULL);
+  // char *fullSignature = concat(module, className, NULL);
+  char *fullSignature = concat("cactus", className, NULL);
   WrenForeignClassMethods_Map *map = wrenGetClassMap(vm);
   WrenForeignClassMethods *methods = map_get(map, fullSignature);
   free(fullSignature);

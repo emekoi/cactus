@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 rxi
+ * Copyright (c) 2018 emekoi
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the MIT license. See LICENSE for details.
@@ -14,6 +14,10 @@
 
 #define BUFFER_CLASS_NAME "Buffer"
 
-sr_Buffer *buffer_new(WrenVM *W);
+typedef struct {
+  sr_Buffer *buffer;
+} Buffer;
+
+void buffer_new(WrenVM *W);
 
 #endif

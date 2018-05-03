@@ -16,12 +16,14 @@
 extern SDL_Window *m_graphics_window;
 
 static void w_mouse_setVisible(WrenVM *W) {
+  wrenEnsureSlots(W, 2);
   wrenCheckSlot(W, 1, WREN_TYPE_BOOL, "expected Bool");
   SDL_ShowCursor(wrenGetSlotBool(W, 1));
 }
 
 
 static void w_mouse_setPosition(WrenVM *W) {
+  wrenEnsureSlots(W, 4);
 	wrenCheckSlot(W, 1, WREN_TYPE_LIST, "expected List");
   wrenGetListElement(W, 1, 0, 2);
 	wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num at index 0");

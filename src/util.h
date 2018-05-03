@@ -47,6 +47,9 @@ typedef struct {
 #define CLAMP(x, a, b)  (MAX(a, MIN(x, b)))
 #define LERP(a, b, p)   ((a) + ((b) - (a)) * (p))
 
+#define wrenGetMethodMap(vm) &(((ForeignWrenData*)wrenGetUserData(vm))->methods)
+#define wrenGetClassMap(vm) &(((ForeignWrenData*)wrenGetUserData(vm))->classes)
+
 static inline void wrenError(WrenVM* vm, const char *str, ...) {
   va_list arg, tmp;
   char *res;
@@ -76,19 +79,34 @@ static inline void wrenError(WrenVM* vm, const char *str, ...) {
 }
 
 static inline void wrenCheckSlot(WrenVM *vm, size_t slot, size_t type, const char *msg) {
+  wrenEnsureSlots(vm, slot + 1);
   if (wrenGetSlotType(vm, slot) != type) {
     wrenError(vm, msg);
   }
 }
 
-#define wrenGetMethodMap(vm) &(((ForeignWrenData*)wrenGetUserData(vm))->methods)
-#define wrenGetClassMap(vm) &(((ForeignWrenData*)wrenGetUserData(vm))->classes)
+static inline void wrenSetSlotBoolOpt(WrenVM *vm, int slot, bool value) {
+  if (wrenGetSlotType(vm, slot) != WREN_TYPE_BOOL) {
+    wrenSetSlotBool(vm, slot, value);
+  }
+}
 
-// #define wrenGetSlotType() WrenType wrenGetSlotType(WrenVM* vm, int slot);
-// #define wrenGetSlotBool() bool wrenGetSlotBool(WrenVM* vm, int slot);
-// #define wrenGetSlotBytes() const char* wrenGetSlotBytes(WrenVM* vm, int slot, int* length);
-// #define wrenGetSlotDouble() double wrenGetSlotDouble(WrenVM* vm, int slot);
-// #define wrenGetSlotForeign() void* wrenGetSlotForeign(WrenVM* vm, int slot);
-// #define wrenGetSlotString() const char* wrenGetSlotString(WrenVM* vm, int slot);
+static inline void wrenSetSlotDoubleOpt(WrenVM *vm, int slot, double value) {
+  if (wrenGetSlotType(vm, slot) != WREN_TYPE_NUM) {
+    wrenSetSlotDouble(vm, slot, value);
+  }
+}
+
+static inline void wrenSetSlotStringOpt(WrenVM *vm, int slot, const char *text) {
+  if (wrenGetSlotType(vm, slot) != WREN_TYPE_STRING) {
+    wrenSetSlotString(vm, slot, text);
+  }
+}
+
+static inline void wrenSetSlotBytesOpt(WrenVM* vm, int slot, const char *bytes, size_t length) {
+  if (wrenGetSlotType(vm, slot) != WREN_TYPE_STRING) {
+    wrenSetSlotBytes(vm, slot, bytes, length);
+  }
+}
 
 #endif

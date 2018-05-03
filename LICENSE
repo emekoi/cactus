@@ -71,3 +71,8 @@ src/lib/sera/*
 . 2d software graphics lib
 . MIT license
 . https://github.com/rxi/sera
+
+src/embed/default.ttf
+. A slick fixed-size typeface, for the building of quality video games and software projects.
+. Public domain
+. https://datagoblin.itch.io/monogram

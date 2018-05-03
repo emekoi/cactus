@@ -26,9 +26,9 @@ void wren_open_time(WrenVM *W);
 void wren_open_graphics(WrenVM *W);
 // void wren_open_audio(WrenVM *W);
 void wren_open_mouse(WrenVM *W);
-// void wren_open_buffer(WrenVM *W);
+void wren_open_buffer(WrenVM *W);
 // void wren_open_bufferfx(WrenVM *W);
-// void wren_open_font(WrenVM *W);
+void wren_open_font(WrenVM *W);
 // void wren_open_source(WrenVM *W);
 void wren_open_data(WrenVM *W);
 // void wren_open_gif(WrenVM *W);
@@ -41,8 +41,8 @@ void wren_open_cactus(WrenVM *W) {
   /* Init submodules */
   static void (*classes[])(WrenVM*) = {
     /* Objects */
-    // wren_open_font,
-    // wren_open_buffer,
+    wren_open_buffer,
+    wren_open_font,
     // wren_open_source,
     wren_open_data,
     // wren_open_gif,

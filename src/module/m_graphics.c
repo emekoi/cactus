@@ -14,7 +14,7 @@
 #include "lib/sera/sera.h"
 #include "util.h"
 #include "wren.h"
-// #include "m_buffer.h"
+#include "m_buffer.h"
 
 #define CLASS_NAME "Graphics"
 
@@ -27,14 +27,13 @@ static int screenHeight = 0;
 static int fullscreen = 0;
 static int resizable = 0;
 static int borderless = 0;
-// static WrenHandle screenHandle = 0;
 
 SDL_Window *m_graphics_window;
-// Buffer *m_graphics_screen;
+Buffer *m_graphics_screen;
+WrenHandle *screenHandle;
 
 
 static void resetVideoMode(WrenVM *W) {
-  UNUSED(W);
   /* Reset video mode */
   SDL_SetWindowFullscreen(m_graphics_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
   SDL_SetWindowSize(m_graphics_window, screenWidth, screenHeight);
@@ -42,17 +41,19 @@ static void resetVideoMode(WrenVM *W) {
   SDL_SetWindowBordered(m_graphics_window, borderless ? SDL_FALSE : SDL_TRUE);
 
   /* Reset screen buffer */
-  // if (m_graphics_screen) {
-  //   sr_Buffer *b = m_graphics_screen->buffer;
-  //   b->pixels = (void*) SDL_GetWindowSurface(m_graphics_window)->pixels;
-  //   b->w = screenWidth;
-  //   b->h = screenHeight;
-  //   sr_setClip(b, sr_rect(0, 0, b->w, b->h));
-  // }
+  if (m_graphics_screen) {
+    sr_Buffer *b = m_graphics_screen->buffer;
+    b->pixels = (void*) SDL_GetWindowSurface(m_graphics_window)->pixels;
+    b->w = screenWidth;
+    b->h = screenHeight;
+    sr_setClip(b, sr_rect(0, 0, b->w, b->h));
+  }
+  wrenSetSlotBool(W, 0, true);
 }
 
 
 static void w_graphics_init(WrenVM *W) {
+  wrenEnsureSlots(W, 7);
   wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 3, WREN_TYPE_STRING, "expected String");
@@ -85,18 +86,25 @@ static void w_graphics_init(WrenVM *W) {
 
   /* Init SDL video */
   resetVideoMode(W);
-  /* Create, store in registry and return main screen buffer */
-//   m_graphics_screen = buffer_new(W);
-//   m_graphics_screen->buffer = sr_newBufferShared(
-//     SDL_GetWindowSurface(m_graphics_window)->pixels, screenWidth, screenHeight);
-//   screenHandle = wrenGetSlotHandle(W, 0);
+  /* Create, create handle and return main screen buffer */
+  buffer_new(W);
+  m_graphics_screen = wrenGetSlotForeign(W, 0);
+  m_graphics_screen->buffer = sr_newBufferShared(
+    SDL_GetWindowSurface(m_graphics_window)->pixels, screenWidth, screenHeight);
+  screenHandle = wrenGetSlotHandle(W, 0);
 
   /* Set state */
   inited = 1;
 }
 
 
+// static void w_graphics_shutdown(WrenVM *W) {
+//   wrenReleaseHandle(W, screenHandle);
+// }
+
+
 static void w_graphics_setSize(WrenVM *W) {
+  wrenEnsureSlots(W, 4);
   wrenCheckSlot(W, 1, WREN_TYPE_BOOL, "expected List");
   wrenGetListElement(W, 1, 0, 2);
 	wrenCheckSlot(W, 2, WREN_TYPE_BOOL, "expected Num at index 0");
@@ -110,6 +118,7 @@ static void w_graphics_setSize(WrenVM *W) {
 
 
 static void w_graphics_setFullscreen(WrenVM *W) {
+  wrenEnsureSlots(W, 2);
   wrenCheckSlot(W, 1, WREN_TYPE_BOOL, "expected Bool");
   fullscreen = wrenGetSlotBool(W, 1);
   resetVideoMode(W);
@@ -123,6 +132,7 @@ static void w_graphics_getFullscreen(WrenVM *W) {
 
 
 static void w_graphics_setMaxFps(WrenVM *W) {
+  wrenEnsureSlots(W, 2);
   wrenCheckSlot(W, WREN_TYPE_NUM, 1, "expected Num");
   m_graphics_maxFps = wrenGetSlotDouble(W, 1);
 }
@@ -136,10 +146,10 @@ static void w_graphics_getMaxFps(WrenVM *W) {
 
 void wren_open_graphics(WrenVM *W) {
   WrenForeignMethodFn_Map *methods = wrenGetMethodMap(W);
-  map_set(methods, "cactus" CLASS_NAME "init_(_, _, _, _, _, _)s", w_graphics_init);
-  map_set(methods, "cactus" CLASS_NAME "fullscreens",              w_graphics_getFullscreen);
-  map_set(methods, "cactus" CLASS_NAME "maxFpss",                  w_graphics_getMaxFps);
-  map_set(methods, "cactus" CLASS_NAME "size=(_)s",                w_graphics_setSize);
-  map_set(methods, "cactus" CLASS_NAME "fullscreen=(_)s",          w_graphics_setFullscreen);
-  map_set(methods, "cactus" CLASS_NAME "maxFps=(_)s",              w_graphics_setMaxFps);
+  map_set(methods, "cactus" CLASS_NAME "init_(_,_,_,_,_,_)s", w_graphics_init);
+  map_set(methods, "cactus" CLASS_NAME "fullscreens",         w_graphics_getFullscreen);
+  map_set(methods, "cactus" CLASS_NAME "maxFpss",             w_graphics_getMaxFps);
+  map_set(methods, "cactus" CLASS_NAME "size=(_)s",           w_graphics_setSize);
+  map_set(methods, "cactus" CLASS_NAME "fullscreen=(_)s",     w_graphics_setFullscreen);
+  map_set(methods, "cactus" CLASS_NAME "maxFps=(_)s",         w_graphics_setMaxFps);
 }
