@@ -29,11 +29,12 @@ static int resizable = 0;
 static int borderless = 0;
 
 SDL_Window *m_graphics_window;
-Buffer *m_graphics_screen;
+static Buffer *m_graphics_screen;
 WrenHandle *screenHandle;
 
 
 static void resetVideoMode(WrenVM *W) {
+  UNUSED(W);
   /* Reset video mode */
   SDL_SetWindowFullscreen(m_graphics_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
   SDL_SetWindowSize(m_graphics_window, screenWidth, screenHeight);
@@ -48,7 +49,6 @@ static void resetVideoMode(WrenVM *W) {
     b->h = screenHeight;
     sr_setClip(b, sr_rect(0, 0, b->w, b->h));
   }
-  wrenSetSlotBool(W, 0, true);
 }
 
 
@@ -87,6 +87,7 @@ static void w_graphics_init(WrenVM *W) {
   /* Init SDL video */
   resetVideoMode(W);
   /* Create, create handle and return main screen buffer */
+  wrenGetVariable(W, "main", "Buffer", 0);
   buffer_new(W);
   m_graphics_screen = wrenGetSlotForeign(W, 0);
   m_graphics_screen->buffer = sr_newBufferShared(
@@ -96,11 +97,6 @@ static void w_graphics_init(WrenVM *W) {
   /* Set state */
   inited = 1;
 }
-
-
-// static void w_graphics_shutdown(WrenVM *W) {
-//   wrenReleaseHandle(W, screenHandle);
-// }
 
 
 static void w_graphics_setSize(WrenVM *W) {

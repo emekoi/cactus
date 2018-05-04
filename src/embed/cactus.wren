@@ -121,19 +121,19 @@ class Color {
 	}
 
 	construct new(r, g, b) {
-		Color.new(r, g, b, 1.0)
+	   return Color.new(r, g, b, 1.0)
 	}
 
   construct new(r, g) {
-    Color.new(r, g, 1.0, 1.0)
+    return Color.new(r, g, 1.0, 1.0)
   }
 
   construct new(r) {
-    Color.new(r, 1.0, 1.0, 1.0)
+    return Color.new(r, 1.0, 1.0, 1.0)
   }
 
   construct new() {
-    Color.new(1.0, 1.0, 1.0, 1.0)
+    return Color.new(1.0, 1.0, 1.0, 1.0)
   }
 
 	r=(r) { _r = r }
@@ -190,6 +190,10 @@ class Transform {
 		_sx = sx
 		_sy = sy
 	}
+
+  construct new() {
+    return Transform.new(0, 0, 0, 1, 1)
+  }
 
 	ox=(ox) { _ox = ox }
 	ox { _ox }
@@ -426,12 +430,18 @@ foreign class Data {
 
 // wren_open_cactus, + wren_open_system,
 class Cactus {
-  /* foreign static init_(config) */
-
 	foreign static version
 
-  /* foreign static poll()
-  foreign static info(info) */
+  foreign static poll()
+  foreign static info(info)
+
+  static onInit_() {
+    Graphics.init_(Config.new())
+  }
+
+  static onStep_() {
+    Cactus.poll()
+  }
 }
 
 // wren_open_fs,
@@ -472,7 +482,10 @@ class Graphics {
 
   static init_(conf) {
     __canvas = this.init_(conf.width, conf.height, conf.title, conf.fullscreen, conf.resizable, conf.borderless)
-    __canvas.floodFill_(0, 0, Color.new())
+    this.maxFps = conf.maxfps
+    /* __canvas.clear(0, 0, Color.new()) */
+    __canvas.clear(Color.new())
+    System.print(__canvas)
   }
 }
 
@@ -526,4 +539,5 @@ class Mouse {
 	foreign static blur(buf, src, rx, ry)
 } */
 
-Graphics.init_(Config.new())
+
+class Game {}

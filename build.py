@@ -9,6 +9,7 @@ COMPILER = "gcc"
 INCLUDE = [
   TEMPSRC_DIR,
   "src",
+  "src/module",
   "src/lib/wren",
   "src/lib/wren/vm",
   "src/lib/wren/optional",
@@ -37,7 +38,7 @@ if platform.system() == "Windows":
   sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
   OUTPUT += ".exe"
   LINK += [ "mingw32", "SDL2main", "SDL2" ]
-  FLAGS += [ "-mwindows" ]
+  # FLAGS += [ "-mwindows" ]
 
 
 if platform.system() == "Linux":
@@ -77,6 +78,8 @@ def main():
     FLAGS += [ "-g"  ]
   else:
     FLAGS += [ "-O3" ]
+    if platform.system() == "Windows":
+      FLAGS += [ "-mwindows" ]
     DEFINE += [ "CACTUS_RELEASE" ]
 
   # Handle "nojit" option -- compile with normal embedded Lua instead

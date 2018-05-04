@@ -47,17 +47,17 @@ static void w_data_fromString(WrenVM *W) {
 
 
 static void w_data_getLength(WrenVM *W) {
-  wrenEnsureSlots(W, 2);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Data");
-  Data *self = wrenGetSlotForeign(W, 1);
+  wrenEnsureSlots(W, 1);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Data");
+  Data *self = wrenGetSlotForeign(W, 0);
   wrenSetSlotDouble(W, 0, self->len);
 }
 
 
 static void w_data_toString(WrenVM *W) {
-  wrenEnsureSlots(W, 2);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Data");
-  Data *self = wrenGetSlotForeign(W, 1);
+  wrenEnsureSlots(W, 1);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Data");
+  Data *self = wrenGetSlotForeign(W, 0);
   wrenSetSlotBytes(W, 0, self->data, self->len);
 }
 

@@ -44,6 +44,7 @@ static sr_Pixel getColorArgs(WrenVM *W, int first, bool defzero) {
   int g = wrenGetSlotDouble(W, first + 1) * 256;
   int b = wrenGetSlotDouble(W, first + 2) * 256;
   int a = wrenGetSlotDouble(W, first + 3) * 256;
+  
   return sr_pixel(r, g, b, a);
 }
 
@@ -137,9 +138,9 @@ static void w_buffer_fromBlank(WrenVM *W) {
 
 
 static void w_buffer_clone(WrenVM *W) {
-  wrenEnsureSlots(W, 2);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
-  Buffer *self = wrenGetSlotForeign(W, 1);
+  wrenEnsureSlots(W, 1);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  Buffer *self = wrenGetSlotForeign(W, 0);
   buffer_new(W);
   Buffer *b = wrenGetSlotForeign(W, 0);
   b->buffer = sr_cloneBuffer(self->buffer);
@@ -150,35 +151,35 @@ static void w_buffer_clone(WrenVM *W) {
 
 
 static void w_buffer_getWidth(WrenVM *W) {
-  wrenEnsureSlots(W, 2);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
-  Buffer *self = wrenGetSlotForeign(W, 1);
+  wrenEnsureSlots(W, 1);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  Buffer *self = wrenGetSlotForeign(W, 0);
   wrenSetSlotDouble(W, 0, self->buffer->w);
  }
 
 static void w_buffer_getHeight(WrenVM *W) {
   wrenEnsureSlots(W, 2);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
-  Buffer *self = wrenGetSlotForeign(W, 1);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  Buffer *self = wrenGetSlotForeign(W, 0);
   wrenSetSlotDouble(W, 0, self->buffer->h);
  }
 
 
 static void w_buffer_setAlpha(WrenVM *W) {
-  wrenEnsureSlots(W, 3);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
-  wrenCheckSlot(W, 2, WREN_TYPE_FOREIGN, "expected Num");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  sr_setAlpha(self->buffer, wrenGetSlotDouble(W, 2) * 0xff);
+  wrenEnsureSlots(W, 2);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Num");
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  sr_setAlpha(self->buffer, wrenGetSlotDouble(W, 1) * 0xff);
  }
 
 
 static void w_buffer_setBlend(WrenVM *W) {
-  wrenEnsureSlots(W, 3);
-  wrenSetSlotDoubleOpt(W, 2, SR_BLEND_ALPHA);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int mode = wrenGetSlotDouble(W, 2);
+  wrenEnsureSlots(W, 2);
+  wrenSetSlotDoubleOpt(W, 1, SR_BLEND_ALPHA);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int mode = wrenGetSlotDouble(W, 1);
   if (mode > SR_BLEND_DIFFERENCE) {
     wrenError(W, "bad blend mode");
   }
@@ -187,249 +188,250 @@ static void w_buffer_setBlend(WrenVM *W) {
 
 
 static void w_buffer_setColor(WrenVM *W) {
-  wrenEnsureSlots(W, 2 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  sr_setColor(self->buffer, getColorArgs(W, 2, false));
+  wrenEnsureSlots(W, 1 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  sr_setColor(self->buffer, getColorArgs(W, 1, false));
  }
 
 
 static void w_buffer_setClip(WrenVM *W) {
-  wrenEnsureSlots(W, 2 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  sr_setClip(self->buffer, getRectArgs(W, 2));
+  wrenEnsureSlots(W, 1 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  sr_setClip(self->buffer, getRectArgs(W, 1));
  }
 
 
 static void w_buffer_reset(WrenVM *W) {
-  wrenEnsureSlots(W, 2);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
-  Buffer *self = wrenGetSlotForeign(W, 1);
+  wrenEnsureSlots(W, 1);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  Buffer *self = wrenGetSlotForeign(W, 0);
   sr_reset(self->buffer);
  }
 
 
 static void w_buffer_clear(WrenVM *W) {
-  wrenEnsureSlots(W, 2 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  sr_clear(self->buffer, getColorArgs(W, 2, true));
+  wrenEnsureSlots(W, 1 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  sr_clear(self->buffer, getColorArgs(W, 1, true));
  }
 
 
 static void w_buffer_getPixel(WrenVM *W) {
-  wrenEnsureSlots(W, 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenEnsureSlots(W, 3);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W, 3, WREN_TYPE_NUM, "expected Num");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int x = wrenGetSlotDouble(W, 2);
-  int y = wrenGetSlotDouble(W, 3);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int x = wrenGetSlotDouble(W, 1);
+  int y = wrenGetSlotDouble(W, 2);
   sr_Pixel px = sr_getPixel(self->buffer, x, y);
   wrenSetSlotNewList(W, 0);
-  wrenSetSlotDouble(W, 2, px.rgba.r / 256); /* div 256. */
-  wrenInsertInList(W, 0, -1, 2);
-  wrenSetSlotDouble(W, 2, px.rgba.g / 256);
-  wrenInsertInList(W, 0, -1, 2);
-  wrenSetSlotDouble(W, 2, px.rgba.b / 256);
-  wrenInsertInList(W, 0, -1, 2);
-  wrenSetSlotDouble(W, 2, px.rgba.a / 256);
-  wrenInsertInList(W, 0, -1, 2);
+  wrenSetSlotDouble(W, 1, px.rgba.r / 256); /* div 256. */
+  wrenInsertInList(W, 0, -1, 1);
+  wrenSetSlotDouble(W, 1, px.rgba.g / 256);
+  wrenInsertInList(W, 0, -1, 1);
+  wrenSetSlotDouble(W, 1, px.rgba.b / 256);
+  wrenInsertInList(W, 0, -1, 1);
+  wrenSetSlotDouble(W, 1, px.rgba.a / 256);
+  wrenInsertInList(W, 0, -1, 1);
  }
 
 
 static void w_buffer_setPixel(WrenVM *W) {
-  wrenEnsureSlots(W, 4 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenEnsureSlots(W, 3 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W, 3, WREN_TYPE_NUM, "expected Num");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int x = wrenGetSlotDouble(W, 2);
-  int y = wrenGetSlotDouble(W, 3);
-  sr_setPixel(self->buffer, getColorArgs(W, 4, false), x, y);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int x = wrenGetSlotDouble(W, 1);
+  int y = wrenGetSlotDouble(W, 2);
+  sr_setPixel(self->buffer, getColorArgs(W, 3, false), x, y);
  }
 
 
 static void w_buffer_copyPixels(WrenVM *W) {
-  wrenEnsureSlots(W, 5 + 4 + 2);
-  wrenCheckSlot(W,  1, WREN_TYPE_FOREIGN, "expected Buffer");
-  wrenCheckSlot(W,  2, WREN_TYPE_FOREIGN, "expected Buffer");
-  wrenCheckSlot(W,  3, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W,  4, WREN_TYPE_NUM, "expected Num");
-  wrenSetSlotDoubleOpt(W,  9, 1);
-  wrenSetSlotDoubleOpt(W, 10, wrenGetSlotDouble(W, 9));
+  wrenEnsureSlots(W, 4 + 4 + 2);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
+  wrenCheckSlot(W, 3, WREN_TYPE_NUM, "expected Num");
+  wrenSetSlotDoubleOpt(W, 8, 1);
+  wrenSetSlotDoubleOpt(W, 9, wrenGetSlotDouble(W, 8));
 
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  Buffer *src  = wrenGetSlotForeign(W, 2);
-  int x = wrenGetSlotDouble(W, 3);
-  int y = wrenGetSlotDouble(W, 4);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  Buffer *src  = wrenGetSlotForeign(W, 1);
+  int x = wrenGetSlotDouble(W, 2);
+  int y = wrenGetSlotDouble(W, 3);
   int hasSub = false;
   sr_Rect sub;
-  if (wrenGetSlotType(W, 5) != WREN_TYPE_NULL) {
+  if (wrenGetSlotType(W, 4) != WREN_TYPE_NULL) {
     hasSub = true;
-    sub = getRectArgs(W, 5);
+    sub = getRectArgs(W, 4);
     checkSubRect(W, src->buffer, &sub);
   }
-  float sx = wrenGetSlotDouble(W, 9);
-  float sy = wrenGetSlotDouble(W, 10);
+  float sx = wrenGetSlotDouble(W, 8);
+  float sy = wrenGetSlotDouble(W, 9);
   sr_copyPixels(self->buffer, src->buffer, x, y, hasSub ? &sub : NULL, sx, sy);
  }
 
 
 static void w_buffer_noise(WrenVM *W) {
-  wrenEnsureSlots(W, 6);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
-  wrenSetSlotDoubleOpt(W, 2, rand());
-  wrenSetSlotDoubleOpt(W, 3, 0);
-  wrenSetSlotDoubleOpt(W, 4, 1);
+  wrenEnsureSlots(W, 5);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenSetSlotDoubleOpt(W, 1, rand());
+  wrenSetSlotDoubleOpt(W, 2, 0);
+  wrenSetSlotDoubleOpt(W, 3, 1);
   wrenSetSlotBoolOpt(W, 4, false);
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int seed = wrenGetSlotDouble(W, 2);
-  int low  = wrenGetSlotDouble(W, 3) * 256;
-  int high = wrenGetSlotDouble(W, 4) * 256;
-  bool grey = wrenGetSlotBool(W, 5);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int seed = wrenGetSlotDouble(W, 1);
+  int low  = wrenGetSlotDouble(W, 2) * 256;
+  int high = wrenGetSlotDouble(W, 3) * 256;
+  bool grey = wrenGetSlotBool(W, 4);
   sr_noise(self->buffer, seed, low, high, grey);
  }
 
 
 static void w_buffer_floodFill(WrenVM *W) {
-  wrenEnsureSlots(W, 4 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenEnsureSlots(W, 3 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W, 3, WREN_TYPE_NUM, "expected Num");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int x = wrenGetSlotDouble(W, 2);
-  int y = wrenGetSlotDouble(W, 3);
-  sr_Pixel px = getColorArgs(W, 4, false);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int x = wrenGetSlotDouble(W, 1);
+  int y = wrenGetSlotDouble(W, 2);
+  sr_Pixel px = getColorArgs(W, 3, false);
   sr_floodFill(self->buffer, px, x, y);
  }
 
 
 static void w_buffer_drawPixel(WrenVM *W) {
-  wrenEnsureSlots(W, 4 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenEnsureSlots(W, 3 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W, 3, WREN_TYPE_NUM, "expected Num");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int x = wrenGetSlotDouble(W, 2);
-  int y = wrenGetSlotDouble(W, 3);
-  sr_Pixel px = getColorArgs(W, 4, false);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int x = wrenGetSlotDouble(W, 1);
+  int y = wrenGetSlotDouble(W, 2);
+  sr_Pixel px = getColorArgs(W, 3, false);
   sr_drawPixel(self->buffer, px, x, y);
  }
 
 
 static void w_buffer_drawLine(WrenVM *W) {
-  wrenEnsureSlots(W, 6 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenEnsureSlots(W, 5 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 3, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 4, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W, 5, WREN_TYPE_NUM, "expected Num");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int x1 = wrenGetSlotDouble(W, 2);
-  int y1 = wrenGetSlotDouble(W, 3);
-  int x2 = wrenGetSlotDouble(W, 4);
-  int y2 = wrenGetSlotDouble(W, 5);
-  sr_Pixel px = getColorArgs(W, 6, false);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int x1 = wrenGetSlotDouble(W, 1);
+  int y1 = wrenGetSlotDouble(W, 2);
+  int x2 = wrenGetSlotDouble(W, 3);
+  int y2 = wrenGetSlotDouble(W, 4);
+  sr_Pixel px = getColorArgs(W, 5, false);
   sr_drawLine(self->buffer, px, x1, y1, x2, y2);
  }
 
 static void w_buffer_drawRect(WrenVM *W) {
-  wrenEnsureSlots(W, 6 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenEnsureSlots(W, 5 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 3, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 4, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W, 5, WREN_TYPE_NUM, "expected Num");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int x = wrenGetSlotDouble(W, 2);
-  int y = wrenGetSlotDouble(W, 3);
-  int w = wrenGetSlotDouble(W, 4);
-  int h = wrenGetSlotDouble(W, 5);
-  sr_Pixel px = getColorArgs(W, 6, false);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int x = wrenGetSlotDouble(W, 1);
+  int y = wrenGetSlotDouble(W, 2);
+  int w = wrenGetSlotDouble(W, 3);
+  int h = wrenGetSlotDouble(W, 4);
+  sr_Pixel px = getColorArgs(W, 5, false);
   sr_drawRect(self->buffer, px, x, y, w, h);
  }
 
 
 static void w_buffer_drawBox(WrenVM *W) {
-  wrenEnsureSlots(W, 6 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenEnsureSlots(W, 5 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 3, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 4, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W, 5, WREN_TYPE_NUM, "expected Num");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int x = wrenGetSlotDouble(W, 2);
-  int y = wrenGetSlotDouble(W, 3);
-  int w = wrenGetSlotDouble(W, 4);
-  int h = wrenGetSlotDouble(W, 5);
-  sr_Pixel px = getColorArgs(W, 6, false);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int x = wrenGetSlotDouble(W, 1);
+  int y = wrenGetSlotDouble(W, 2);
+  int w = wrenGetSlotDouble(W, 3);
+  int h = wrenGetSlotDouble(W, 4);
+  sr_Pixel px = getColorArgs(W, 5, false);
   sr_drawBox(self->buffer, px, x, y, w, h);
  }
 
 
 static void w_buffer_drawCircle(WrenVM *W) {
-  wrenEnsureSlots(W, 5 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenEnsureSlots(W, 4 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 3, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W, 4, WREN_TYPE_NUM, "expected Num");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int x = wrenGetSlotDouble(W, 2);
-  int y = wrenGetSlotDouble(W, 3);
-  int r = wrenGetSlotDouble(W, 4);
-  sr_Pixel px = getColorArgs(W, 5, false);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int x = wrenGetSlotDouble(W, 1);
+  int y = wrenGetSlotDouble(W, 2);
+  int r = wrenGetSlotDouble(W, 3);
+  sr_Pixel px = getColorArgs(W, 4, false);
   sr_drawCircle(self->buffer, px, x, y, r);
  }
 
 
 static void w_buffer_drawRing(WrenVM *W) {
-  wrenEnsureSlots(W, 5 + 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenEnsureSlots(W, 4 + 4);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
   wrenCheckSlot(W, 3, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W, 4, WREN_TYPE_NUM, "expected Num");
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  int x = wrenGetSlotDouble(W, 2);
-  int y = wrenGetSlotDouble(W, 3);
-  int r = wrenGetSlotDouble(W, 4);
-  sr_Pixel px = getColorArgs(W, 5, false);
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  int x = wrenGetSlotDouble(W, 1);
+  int y = wrenGetSlotDouble(W, 2);
+  int r = wrenGetSlotDouble(W, 3);
+  sr_Pixel px = getColorArgs(W, 4, false);
   sr_drawRing(self->buffer, px, x, y, r);
  }
 
 
 static void w_buffer_drawBuffer(WrenVM *W) {
-  wrenEnsureSlots(W, 6 + 4 + 5);
-  wrenCheckSlot(W,  1, WREN_TYPE_FOREIGN, "expected Buffer");
-  wrenCheckSlot(W,  2, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenEnsureSlots(W, 4 + 4 + 5);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Buffer");
+  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Buffer");
 
-  wrenCheckSlot(W,  3, WREN_TYPE_NUM, "expected Num");
-  wrenCheckSlot(W,  4, WREN_TYPE_NUM, "expected Num");
+  wrenSetSlotDoubleOpt(W,  2, 0);
+  wrenSetSlotDoubleOpt(W,  3, 0);
 
-  wrenSetSlotDoubleOpt(W,   9, 0);
-  wrenSetSlotDoubleOpt(W,  10, 0);
-  wrenSetSlotDoubleOpt(W,  11, 0);
-  wrenSetSlotDoubleOpt(W,  12, 1);
-  wrenSetSlotDoubleOpt(W,  13, wrenGetSlotDouble(W, 12));
+
+  wrenSetSlotDoubleOpt(W,  8, 0);
+  wrenSetSlotDoubleOpt(W,  9, 0);
+  wrenSetSlotDoubleOpt(W, 10, 0);
+  wrenSetSlotDoubleOpt(W, 11, 1);
+  wrenSetSlotDoubleOpt(W, 12, wrenGetSlotDouble(W, 11));
 
   int hasSub = 0;
   sr_Rect sub;
   sr_Transform t;
-  Buffer *self = wrenGetSlotForeign(W, 1);
-  Buffer *src  = wrenGetSlotForeign(W, 2);
-  int x = wrenGetSlotDouble(W, 3);
-  int y = wrenGetSlotDouble(W, 4);
-  if (wrenGetSlotType(W, 5) != WREN_TYPE_NULL) {
+  Buffer *self = wrenGetSlotForeign(W, 0);
+  Buffer *src  = wrenGetSlotForeign(W, 1);
+  int x = wrenGetSlotDouble(W, 2);
+  int y = wrenGetSlotDouble(W, 3);
+  if (wrenGetSlotType(W, 4) != WREN_TYPE_NULL) {
     hasSub = 1;
-    sub = getRectArgs(W, 5);
+    sub = getRectArgs(W, 4);
     checkSubRect(W, src->buffer, &sub);
   }
-  t.ox = wrenGetSlotDouble(W,  9);
-  t.oy = wrenGetSlotDouble(W, 10);
-  t.r  = wrenGetSlotDouble(W, 11);
-  t.sx = wrenGetSlotDouble(W, 12);
-  t.sy = wrenGetSlotDouble(W, 13);
+  t.ox = wrenGetSlotDouble(W,  8);
+  t.oy = wrenGetSlotDouble(W,  9);
+  t.r  = wrenGetSlotDouble(W, 10);
+  t.sx = wrenGetSlotDouble(W, 11);
+  t.sy = wrenGetSlotDouble(W, 12);
   sr_drawBuffer(self->buffer, src->buffer, x, y, hasSub ? &sub : NULL, &t);
  }
 

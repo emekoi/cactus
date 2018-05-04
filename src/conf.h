@@ -79,7 +79,6 @@ static WrenForeignMethodFn wren_bindForeignMethod(
 	char *fullSignature = concat("cactus", className, signature, isStatic ? "s" : "", NULL);
 	WrenForeignMethodFn_Map *map = wrenGetMethodMap(vm);
 	WrenForeignMethodFn *method = map_get(map, fullSignature);
-  printf("%s %p\n", fullSignature, method);
 	free(fullSignature);
 	return method ? *method : NULL;
 }

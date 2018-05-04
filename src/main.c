@@ -16,23 +16,25 @@
 #include "conf.h"
 #include "wren.h"
 // #include "m_source.h"
-// #include "m_buffer.h"
 #include "fs.h"
 
 extern double m_graphics_maxFps;
-// extern Buffer* m_graphics_screen;
 extern SDL_Window *m_graphics_window;
+extern WrenHandle *screenHandle;
 
 static WrenVM *W;
 static ForeignWrenData foreignData;
 static WrenConfiguration configuration;
 // static SDL_mutex *luaMutex;
+static WrenHandle *cactusHandle;
+static WrenHandle *methodHandle;
 
 static void shutdown(void) {
 #ifndef __APPLE__
   // SDL_UnlockMutex(luaMutex);
   SDL_Quit();
 #endif
+  wrenReleaseHandle(W, screenHandle);
   wrenFreeVM(W);
   map_deinit(&(foreignData.methods));
   map_deinit(&(foreignData.classes));
@@ -45,6 +47,10 @@ int main(int argc, char **argv) {
   UNUSED(argc);
   UNUSED(argv);
   atexit(shutdown);
+
+#if defined(_WIN32) && !defined(CACTUS_RELEASE)
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+#endif
 
   /* Init lua state mutex and pass to sources module */
   // luaMutex = SDL_CreateMutex();
@@ -101,8 +107,15 @@ int main(int argc, char **argv) {
     int err = wrenInterpret(W, items[i].data);
     if (err != WREN_RESULT_SUCCESS) abort();
   }
-  // ASSERT(SDL_UnlockMutex(luaMutex) == 0);
 
+  /* Setup Cactus */
+  wrenEnsureSlots(W, 1);
+  wrenGetVariable(W, "main", "Cactus", 0);
+  cactusHandle = wrenGetSlotHandle(W, 0);
+  methodHandle = wrenMakeCallHandle(W, "onInit_()");
+  if (wrenCall(W, methodHandle) != WREN_RESULT_SUCCESS) abort();
+  methodHandle = wrenMakeCallHandle(W, "onStep_()");
+  // ASSERT(SDL_UnlockMutex(luaMutex) == 0);
   /* Do main loop */
   double last = 0;
   SDL_Surface *screen;
@@ -110,19 +123,8 @@ int main(int argc, char **argv) {
     screen = SDL_GetWindowSurface(m_graphics_window);
     if (screen && SDL_MUSTLOCK(screen)) SDL_LockSurface(screen);
     // ASSERT(SDL_LockMutex(luaMutex) == 0);
-    // lua_getglobal(L, "sol");
-    // if (!lua_isnil(L, -1)) {
-    //   lua_getfield(L, -1, "_onStep");
-    //   if (!lua_isnil(L, -1)) {
-    //     int err = lua_pcall(L, 0, 0, 0);
-    //     if (err) {
-    //       const char *str = lua_tostring(L, -1);
-    //       fprintf(stderr, "error: %s\n", str);
-    //       abort();
-    //     }
-    //   }
-    //   lua_pop(L, 1);
-    // }
+    wrenSetSlotHandle(W, 0, cactusHandle);
+    if (wrenCall(W, methodHandle) != WREN_RESULT_SUCCESS) abort();
     // ASSERT(SDL_UnlockMutex(luaMutex) == 0);
     if (screen && SDL_MUSTLOCK(screen)) SDL_UnlockSurface(screen);
     SDL_Surface *screen = SDL_GetWindowSurface(m_graphics_window);

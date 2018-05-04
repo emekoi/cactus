@@ -52,29 +52,26 @@ typedef struct {
 
 static inline void wrenError(WrenVM* vm, const char *str, ...) {
   va_list arg, tmp;
-  char *res;
+  char *msg = NULL;
   int len;
-  res = NULL;
-  goto end;
+  if (str == NULL) return;
   va_start(arg, str);
   /* create a copy of the list of args */
   __va_copy(tmp, arg);
   /* get length string should be */
-  len = vsnprintf(res, 0, str, tmp);
+  len = vsnprintf(msg, 0, str, tmp);
   /* toss temp copy */
   va_end(tmp);
   /* something is wrong... */
-  res = NULL;
-  goto end;
+  if (len < 0) return;
   /* resize the string */
-  res = calloc(len + 1, sizeof(char));
-  res[len] = '\0';
-  /* format the string */
-  vsnprintf(res, len + 1, str, arg);
+  msg = calloc(len + 1, sizeof(char));
+  /* format the string string in msg */
+  vsnprintf(msg, len + 1, str, arg);
   /* toss args */
   va_end(arg);
-  end:
-  wrenSetSlotString(vm, 0, res);
+  wrenSetSlotBytes(vm, 0, msg, len + 1);
+  free(msg);
   wrenAbortFiber(vm, 0);
 }
 
@@ -101,6 +98,30 @@ static inline void wrenSetSlotStringOpt(WrenVM *vm, int slot, const char *text) 
   if (wrenGetSlotType(vm, slot) != WREN_TYPE_STRING) {
     wrenSetSlotString(vm, slot, text);
   }
+}
+
+static inline void wrenSetSlotStringFormat(WrenVM* vm, const char *str, ...) {
+  va_list arg, tmp;
+  char *msg = NULL;
+  int len;
+  if (str == NULL) return;
+  va_start(arg, str);
+  /* create a copy of the list of args */
+  __va_copy(tmp, arg);
+  /* get length string should be */
+  len = vsnprintf(msg, 0, str, tmp);
+  /* toss temp copy */
+  va_end(tmp);
+  /* something is wrong... */
+  if (len < 0) return;
+  /* resize the string */
+  msg = calloc(len + 1, sizeof(char));
+  /* format the string string in msg */
+  vsnprintf(msg, len + 1, str, arg);
+  /* toss args */
+  va_end(arg);
+  wrenSetSlotBytes(vm, 0, msg, len + 1);
+  free(msg);
 }
 
 static inline void wrenSetSlotBytesOpt(WrenVM* vm, int slot, const char *bytes, size_t length) {

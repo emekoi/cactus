@@ -38,7 +38,7 @@ static const char *loadFontFromMemory(
 
 
 static void font_new(WrenVM *W) {
-  wrenSetSlotDoubleOpt(W, 2, DEFAULT_FONTSIZE);
+  wrenSetSlotDoubleOpt(W, 3, DEFAULT_FONTSIZE);
   Font *self = wrenSetSlotNewForeign(W, 0, 0, sizeof(*self));
   memset(self, 0, sizeof(*self));
   int len = 0;
@@ -82,18 +82,19 @@ static void w_font_fromString(WrenVM *W) {
 static void w_font_fromEmbedded(WrenVM *W) {
   #include "default_ttf.h"
   wrenEnsureSlots(W, 3);
-  wrenSetSlotBytes(W, 1, default_ttf, sizeof(default_ttf));
+  // wrenSetSlotBytes(W, 1, default_ttf, sizeof(default_ttf));
+  wrenSetSlotString(W, 1, default_ttf);
   font_new(W);
  }
 
 
 static void w_font_render(WrenVM *W) {
   wrenEnsureSlots(W, 3);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Font");
-  wrenCheckSlot(W, 2, WREN_TYPE_STRING, "expected String");
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Font");
+  wrenCheckSlot(W, 1, WREN_TYPE_STRING, "expected String");
   int w, h;
-  Font *self = wrenGetSlotForeign(W, 1);
-  const char *str = wrenGetSlotString(W, 2);
+  Font *self = wrenGetSlotForeign(W, 0);
+  const char *str = wrenGetSlotString(W, 1);
   if (!str || *str == '\0') str = " ";
   void *data = ttf_render(self->font, str, &w, &h);
   if (!data) {
@@ -102,6 +103,7 @@ static void w_font_render(WrenVM *W) {
   /* Load bitmap and free intermediate 8bit bitmap */
   wrenSetSlotDouble(W, 1, w);
   wrenSetSlotDouble(W, 2, h);
+  wrenGetVariable(W, "main", "Buffer", 0);
   buffer_new(W);
   Buffer *b = wrenGetSlotForeign(W, 0);
   b->buffer = sr_newBuffer(w, h);
@@ -115,27 +117,27 @@ static void w_font_render(WrenVM *W) {
 
 
 static void w_font_getWidth(WrenVM *W) {
-  wrenEnsureSlots(W, 3);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Font");
-  wrenCheckSlot(W, 2, WREN_TYPE_STRING, "expected String");
-  Font *self = wrenGetSlotForeign(W, 1);
-  const char *str = wrenGetSlotString(W, 2);
+  wrenEnsureSlots(W, 2);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Font");
+  wrenCheckSlot(W, 1, WREN_TYPE_STRING, "expected String");
+  Font *self = wrenGetSlotForeign(W, 0);
+  const char *str = wrenGetSlotString(W, 1);
   wrenSetSlotDouble(W, 0, ttf_width(self->font, str));
  }
 
 
 static void w_font_getHeight(WrenVM *W) {
-  wrenEnsureSlots(W, 2);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Font");
-  Font *self = wrenGetSlotForeign(W, 1);
+  wrenEnsureSlots(W, 1);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Font");
+  Font *self = wrenGetSlotForeign(W, 0);
   wrenSetSlotDouble(W, 0, ttf_height(self->font));
  }
 
 
 static void w_font_getSize(WrenVM *W) {
-  wrenEnsureSlots(W, 2);
-  wrenCheckSlot(W, 1, WREN_TYPE_FOREIGN, "expected Font");
-  Font *self = wrenGetSlotForeign(W, 1);
+  wrenEnsureSlots(W, 1);
+  wrenCheckSlot(W, 0, WREN_TYPE_FOREIGN, "expected Font");
+  Font *self = wrenGetSlotForeign(W, 0);
   wrenSetSlotDouble(W, 0, self->font->ptsize);
  }
 

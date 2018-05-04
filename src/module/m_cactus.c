@@ -20,7 +20,7 @@ static void w_cactus_getVersion(WrenVM *W) {
 }
 
 
-// void wren_open_system(WrenVM *W);
+void wren_open_system(WrenVM *W);
 void wren_open_fs(WrenVM *W);
 void wren_open_time(WrenVM *W);
 void wren_open_graphics(WrenVM *W);
@@ -47,7 +47,7 @@ void wren_open_cactus(WrenVM *W) {
     wren_open_data,
     // wren_open_gif,
     /* Modules */
-    // wren_open_system,
+    wren_open_system,
     wren_open_fs,
     wren_open_time,
     wren_open_graphics,
