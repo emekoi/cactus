@@ -27,8 +27,8 @@ WREN = [
   "src/lib/wren/optional/*.c",
 ]
 # FLAGS = [ "-Wall", "-Wextra", "--std=c99", "-fno-strict-aliasing", "-Wno-unused-value", "-Wno-misleading-indentation" ]
-# FLAGS = [ "-Wall", "-Wextra", "--std=c99", "-fno-strict-aliasing", "-Wno-unused-value" ]
-FLAGS = [ "--std=c99", "-fno-strict-aliasing" ]
+FLAGS = [ "-Wall", "-Wextra", "--std=c99", "-fno-strict-aliasing", "-Wno-unused-value" ]
+# FLAGS = [ "--std=c99", "-fno-strict-aliasing" ]
 LINK = [ "m" ]
 LINKER = [  ]
 DEFINE = [ "WREN_OPT_META", "WREN_OPT_META" ]

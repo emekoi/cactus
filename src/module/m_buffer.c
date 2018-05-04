@@ -44,7 +44,7 @@ static sr_Pixel getColorArgs(WrenVM *W, int first, bool defzero) {
   int g = wrenGetSlotDouble(W, first + 1) * 256;
   int b = wrenGetSlotDouble(W, first + 2) * 256;
   int a = wrenGetSlotDouble(W, first + 3) * 256;
-  
+
   return sr_pixel(r, g, b, a);
 }
 
@@ -74,15 +74,16 @@ static int loadBufferFromMemory(Buffer *self, const void *data, int len) {
   void *pixels = stbi_load_from_memory(
     data, len, &w, &h, NULL, STBI_rgb_alpha);
   if (!pixels) {
-    return -1;
+    return true;
   }
   self->buffer = sr_newBuffer(w, h);
   if (!self->buffer) {
     free(pixels);
-    return -1;
+    return true;
   }
   sr_loadPixels(self->buffer, pixels, SR_FMT_RGBA);
   free(pixels);
+  return false;
  }
 
 
@@ -108,7 +109,7 @@ static void w_buffer_fromFile(WrenVM *W) {
 static void w_buffer_fromString(WrenVM *W) {
   wrenEnsureSlots(W, 2);
   wrenCheckSlot(W, 1, WREN_TYPE_STRING, "expected String");
-  size_t len;
+  int len;
   const char *str = wrenGetSlotBytes(W, 1, &len);
   buffer_new(W);
   Buffer *self = wrenGetSlotForeign(W, 0);

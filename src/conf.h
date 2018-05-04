@@ -44,6 +44,7 @@ static void wren_errorFn(
   WrenVM* vm, WrenErrorType type, const char* module,
   int line, const char* message
 ) {
+  UNUSED(vm);
   switch (type) {
     case WREN_ERROR_COMPILE: {
       fprintf(
@@ -75,6 +76,7 @@ static WrenForeignMethodFn wren_bindForeignMethod(
 	WrenVM* vm, const char* module, const char* className,
   bool isStatic, const char* signature
 ) {
+  UNUSED(module);
   // char *fullSignature = concat(module, className, signature, isStatic ? "s" : "", NULL);
 	char *fullSignature = concat("cactus", className, signature, isStatic ? "s" : "", NULL);
 	WrenForeignMethodFn_Map *map = wrenGetMethodMap(vm);
@@ -86,6 +88,7 @@ static WrenForeignMethodFn wren_bindForeignMethod(
 static WrenForeignClassMethods wren_bindForeignClass(
   WrenVM* vm, const char* module, const char* className
 ) {
+  UNUSED(module);
   // char *fullSignature = concat(module, className, NULL);
   char *fullSignature = concat("cactus", className, NULL);
   WrenForeignClassMethods_Map *map = wrenGetClassMap(vm);

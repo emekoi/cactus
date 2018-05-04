@@ -100,7 +100,7 @@ static inline void wrenSetSlotStringOpt(WrenVM *vm, int slot, const char *text) 
   }
 }
 
-static inline void wrenSetSlotStringFormat(WrenVM* vm, const char *str, ...) {
+static inline void wrenSetSlotStringFormat(WrenVM* vm, int slot, const char *str, ...) {
   va_list arg, tmp;
   char *msg = NULL;
   int len;
@@ -120,7 +120,7 @@ static inline void wrenSetSlotStringFormat(WrenVM* vm, const char *str, ...) {
   vsnprintf(msg, len + 1, str, arg);
   /* toss args */
   va_end(arg);
-  wrenSetSlotBytes(vm, 0, msg, len + 1);
+  wrenSetSlotBytes(vm, slot, msg, len + 1);
   free(msg);
 }
 

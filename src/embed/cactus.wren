@@ -5,6 +5,11 @@
  * under the terms of the MIT license. See LICENSE for details.
  */
 
+class Exit {
+  static SUCCESS { 0x00 }
+  static FAILURE { 0x01 }
+}
+
 class BufferFormat {
   static BGRA { 0x00 }
   static RGBA { 0x01 }
@@ -211,7 +216,6 @@ class Transform {
 	sy { _sy }
 }
 
-// wren_open_font,
 foreign class Font {
   construct new_(data, ptsize) {}
 	foreign static fromFile(file, ptsize)
@@ -219,15 +223,15 @@ foreign class Font {
 	foreign static fromEmbedded(ptsize)
 
   static fromFile(file) {
-    this.fromFile(file, null)
+    return this.fromFile(file, null)
   }
 
   static fromString(str) {
-    this.fromString(str, null)
+    return this.fromString(str, null)
   }
 
   static fromEmbedded() {
-    this.fromEmbedded(null)
+    return this.fromEmbedded(null)
   }
 
 	foreign height
@@ -237,7 +241,6 @@ foreign class Font {
 	foreign render(text)
 }
 
-// wren_open_buffer,
 foreign class Buffer {
   construct new_(mode, data) {}
 	foreign static fromFile(file)
@@ -270,7 +273,7 @@ foreign class Buffer {
   foreign draw_(src, x, y, qx, qy, qw, qh, ox, oy, r, sx, sy)
 
   alpha=(alpha) {
-    this.setAlpha_(1.0)
+    this.setAlpha_(alpha)
   }
 
   blend=(blend) {
@@ -383,14 +386,13 @@ foreign class Buffer {
       )
     } else if (qt is Transform) {
       this.draw_(
-        src, x, y, 0, 0, this.w, this.h,
+        src, x, y, null, null, null, null,
         qt.ox, qt.oy, qt.r, qt.sx, qt.sy
       )
     }
   }
 }
 
-// wren_open_source,
 /* foreign class Source {
   construct new_() {}
 	foreign static fromData(data)
@@ -411,7 +413,6 @@ foreign class Buffer {
 	foreign stop()
 } */
 
-// wren_open_data,
 foreign class Data {
   construct new_(data) {}
 	foreign static fromFile(file)
@@ -421,30 +422,58 @@ foreign class Data {
 	foreign toString
 }
 
-// wren_open_gif,
-/* foreign class Gif {
+foreign class Gif {
 	construct new(width, height, ncolors) {}
 	foreign update(buf, delay)
 	foreign close()
-} */
+}
 
-// wren_open_cactus, + wren_open_system,
 class Cactus {
 	foreign static version
 
   foreign static poll()
+  foreign static exit(code)
   foreign static info(info)
+
+  static exit() {
+    this.exit(Exit.SUCCESS)
+  }
 
   static onInit_() {
     Graphics.init_(Config.new())
+    Time.init_()
+  }
+
+  static onQuit_() {
+    this.exit(Exit.SUCCESS)
+  }
+
+  static onStepMain {
+    return Fn.new {
+      for (e in this.poll()) {
+        if (e[0] == "quit") {
+          this.onQuit_()
+        }
+      }
+
+      Time.step()
+      /* UPDATE METHOD */
+      Graphics.clear()
+      /* DRAW METHOD */
+      /* DEBUG METHOD */
+      /* KEYBOARD RESET */
+      /* MOUSE RESET */
+    }
   }
 
   static onStep_() {
-    Cactus.poll()
+    Fiber.new(this.onStepMain).try()
+    System.gc()
+    System.gc()
   }
+
 }
 
-// wren_open_fs,
 class FS {
 	foreign static mount(path)
   foreign static unmount(path)
@@ -461,15 +490,42 @@ class FS {
   foreign static makeDirs(path)
 }
 
-// wren_open_time
 class Time {
 	foreign static now
 	foreign static time
 
 	foreign static sleep(ms)
+
+  static delta { __delta }
+  static average { __average }
+  static fps { (1 / __average).round }
+
+  static init_() {
+    __last = 0
+    __delta = 0
+    __average = 0
+    __avgTimer = 0
+    __avgAcc = 1
+    __avgCount = 1
+  }
+
+  static step() {
+    var now = this.now
+    if (__last == 0) __last = now
+    __delta = now - __last
+    __last = now
+    __avgTimer = __avgTimer - __delta
+    __avgAcc = __avgAcc + __delta
+    __avgCount = __avgCount + 1
+    if (__avgTimer <= 0) {
+      __average = __avgAcc / __avgCount
+      __avgTimer = __avgTimer + 1
+      __avgCount = 0
+      __avgAcc = 0
+    }
+  }
 }
 
-// wren_open_graphics,
 class Graphics {
   foreign static init_(width, height, title, fullscreen, resizable, borderless)
 
@@ -483,18 +539,109 @@ class Graphics {
   static init_(conf) {
     __canvas = this.init_(conf.width, conf.height, conf.title, conf.fullscreen, conf.resizable, conf.borderless)
     this.maxFps = conf.maxfps
-    /* __canvas.clear(0, 0, Color.new()) */
-    __canvas.clear(Color.new())
-    System.print(__canvas)
+    __clearColor = Color.new()
+    this.clear()
+  }
+
+  static w { __canvas.w }
+
+  static h { __canvas.h }
+
+  static clearColor { __clearColor }
+
+  static alpha=(alpha) {
+    __canvas.setAlpha(alpha)
+  }
+
+  static blend=(blend) {
+    __canvas.setBlend(blend)
+  }
+
+  static color=(color) {
+    __canvas.setColor(color)
+  }
+
+  static clip=(rect) {
+    __canvas.setClip(rect)
+  }
+
+  static clearColor=(color) {
+    __clearColor = color
+  }
+
+  static clone() {
+    return __canvas.clone()
+  }
+
+  static reset() {
+    __canvas.reset()
+  }
+
+  static clear() {
+    __canvas.clear(__clearColor)
+  }
+
+  static clear(color) {
+    __canvas.clear(color)
+  }
+
+  static getPixel(x, y) {
+    return __canvas.getPixel(x, y)
+  }
+
+  static setPixel(x, y, color) {
+    __canvas.setPixel(x, y, color)
+  }
+
+  static copyPixels(src, x, y, quad, sx, sy) {
+    __canvas.copyPixels(src, x, y, quad, sx, sy)
+  }
+
+  static copyPixels(src, x, y, sx, sy) {
+    __canvas.copyPixels(src, x, y, sx, sy)
+  }
+
+  static floodFill(x, y, color) {
+    __canvas.floodFill(x, y, color)
+  }
+
+  static drawPixel(x, y, color) {
+    __canvas.drawPixel(x, y, color)
+  }
+
+  static drawLine(x0, y0, x1, y1, color) {
+    __canvas.drawLine(x0, y0, x1, y1, color)
+  }
+
+  static drawRect(x, y, width, height, color) {
+    __canvas.drawRect(x, y, width, height, color)
+  }
+
+  static drawBox(x, y, width, height, color) {
+    __canvas.drawBox(x, y, width, height, color)
+  }
+
+  static drawCircle(x, y, radius, color) {
+    __canvas.drawCircle(x, y, radius, color)
+  }
+
+  static drawRing(x, y, radius, color) {
+    __canvas.drawRing(x, y, radius, color)
+  }
+
+  static draw(src, x, y, q, t) {
+    __canvas.draw(src, x, y, q, t)
+  }
+
+  static draw(src, x, y, qt) {
+    __canvas.draw(src, x, y, qt)
   }
 }
 
-// wren_open_audio,
 /* class Audio {
 	foreign static init_(rate, buffersize)
 } */
 
-// wren_open_mouse
 class Mouse {
 	foreign static visible_=(visible)
 	foreign static position_=(position)
@@ -527,8 +674,6 @@ class Mouse {
 	}
 }
 
-
-// wren_open_bufferfx,
 /* class BufferFX {
 	foreign static desaturate(buf, amount)
 	foreign static palette(buf, pal)
@@ -538,6 +683,3 @@ class Mouse {
 	foreign static displace(buf, src, map, cx, cy, sx, sy)
 	foreign static blur(buf, src, rx, ry)
 } */
-
-
-class Game {}

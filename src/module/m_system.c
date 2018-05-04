@@ -33,72 +33,96 @@ static const char *buttonStr(int id) {
 }
 
 
+#define SLOT(i) i + 1
+
 static void w_system_poll(WrenVM *W) {
   /* Create events table */
-  wrenEnsureSlots(W, 5);
+  wrenEnsureSlots(W, 6);
   wrenSetSlotNewList(W, 0);
 
   /* Handle events */
-  int eventIdx = 1;
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
+    int listLen = 0;
+    wrenSetSlotNewList(W, 1);
 
     switch (e.type) {
       case SDL_QUIT:
-        // luax_setfield_string(W, "type", "quit");
+        listLen += 1;
+        wrenSetSlotString(W, SLOT(1), "quit");
         break;
 
       case SDL_WINDOWEVENT:
         switch (e.window.event) {
           case SDL_WINDOWEVENT_RESIZED:
-          // luax_setfield_string(W, "type", "resize");
-          // luax_setfield_number(W, "width", e.window.data1);
-          // luax_setfield_number(W, "height", e.window.data2);
+            listLen += 3;
+            wrenSetSlotString(W, SLOT(1), "resize");
+            wrenSetSlotDouble(W, SLOT(2), e.window.data1);
+            wrenSetSlotDouble(W, SLOT(3), e.window.data2);
           break;
         }
         break;
 
       case SDL_KEYDOWN:
-        // luax_setfield_string(W, "type", "keydown");
-        // luax_setfield_fstring(W, "key", "%s",
-                              // SDL_GetKeyName(e.key.keysym.sym));
+        listLen += 2;
+        wrenSetSlotString(W, SLOT(1), "keydown");
+        wrenSetSlotStringFormat(W, SLOT(2), "%s", SDL_GetKeyName(e.key.keysym.sym));
         break;
 
       case SDL_KEYUP:
-        // luax_setfield_string(W, "type", "keyup");
-        // luax_setfield_fstring(W, "key", "%s",
-                              // SDL_GetKeyName(e.key.keysym.sym));
+        listLen += 2;
+        wrenSetSlotString(W, SLOT(1), "keyup");
+        wrenSetSlotStringFormat(W, SLOT(2), "%s", SDL_GetKeyName(e.key.keysym.sym));
         break;
 
       case SDL_TEXTINPUT:
-        // luax_setfield_string(W, "type", "textinput");
-        // luax_setfield_fstring(W, "text", "%s", e.text.text);
+        listLen += 2;
+        wrenSetSlotString(W, SLOT(1), "textinput");
+        wrenSetSlotStringFormat(W, SLOT(2), "%s", e.text.text);
         break;
 
       case SDL_MOUSEMOTION:
-        // luax_setfield_string(W, "type", "mousemove");
-        // luax_setfield_number(W, "x", e.motion.x);
-        // luax_setfield_number(W, "y", e.motion.y);
+        listLen += 3;
+        wrenSetSlotString(W, SLOT(1), "mousemove");
+        wrenSetSlotDouble(W, SLOT(2), e.motion.x);
+        wrenSetSlotDouble(W, SLOT(3), e.motion.y);
         break;
 
       case SDL_MOUSEBUTTONDOWN:
-        // luax_setfield_string(W, "type", "mousebuttondown");
-        // luax_setfield_string(W, "button", buttonStr(e.button.button));
-        // luax_setfield_number(W, "x", e.button.x);
-        // luax_setfield_number(W, "y", e.button.y);
+        listLen += 4;
+        wrenSetSlotString(W, SLOT(1), "mousebuttondown");
+        wrenSetSlotString(W, SLOT(2), buttonStr(e.button.button));
+        wrenSetSlotDouble(W, SLOT(3), e.button.x);
+        wrenSetSlotDouble(W, SLOT(4), e.button.y);
         break;
 
       case SDL_MOUSEBUTTONUP:
-        // luax_setfield_string(W, "type", "mousebuttonup");
-        // luax_setfield_string(W, "button", buttonStr(e.button.button));
-        // luax_setfield_number(W, "x", e.button.x);
-        // luax_setfield_number(W, "y", e.button.y);
+        listLen += 4;
+        wrenSetSlotString(W, SLOT(1), "mousebuttonup");
+        wrenSetSlotString(W, SLOT(2), buttonStr(e.button.button));
+        wrenSetSlotDouble(W, SLOT(3), e.button.x);
+        wrenSetSlotDouble(W, SLOT(4), e.button.y);
         break;
     }
 
-    /* Push event to events table */
-    // lua_rawseti(W, -2, eventIdx++);
+    /* Push event to list */
+    for (int i = 0; i < listLen; i++) {
+      wrenInsertInList(W, 1, i, SLOT(i + 1));
+    }
+
+    if (wrenGetListCount(W, 1) > 0) {
+      wrenInsertInList(W, 0, -1, 1);
+    }
   }
+}
+
+#undef SLOT
+
+
+static void w_system_exit(WrenVM *W) {
+  wrenEnsureSlots(W, 2);
+  int code = wrenGetSlotDouble(W, 1);
+  exit(code);
 }
 
 
@@ -179,5 +203,6 @@ void wren_open_system(WrenVM *W) {
   WrenForeignMethodFn_Map *methods = wrenGetMethodMap(W);
 
   map_set(methods, "cactus" CLASS_NAME "poll()s",  w_system_poll);
+  map_set(methods, "cactus" CLASS_NAME "exit(_)s", w_system_exit);
   map_set(methods, "cactus" CLASS_NAME "info(_)s", w_system_info);
 }

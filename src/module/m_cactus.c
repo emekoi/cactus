@@ -10,7 +10,7 @@
 #include "util.h"
 #include <SDL2/SDL.h>
 
-#define CACTUS_VERSION "0.3.0"
+#define CACTUS_VERSION "0.1.0"
 #define CLASS_NAME "Cactus"
 
 
@@ -31,7 +31,7 @@ void wren_open_buffer(WrenVM *W);
 void wren_open_font(WrenVM *W);
 // void wren_open_source(WrenVM *W);
 void wren_open_data(WrenVM *W);
-// void wren_open_gif(WrenVM *W);
+void wren_open_gif(WrenVM *W);
 
 void wren_open_cactus(WrenVM *W) {
   WrenForeignMethodFn_Map *methods = wrenGetMethodMap(W);
@@ -45,7 +45,7 @@ void wren_open_cactus(WrenVM *W) {
     wren_open_font,
     // wren_open_source,
     wren_open_data,
-    // wren_open_gif,
+    wren_open_gif,
     /* Modules */
     wren_open_system,
     wren_open_fs,
