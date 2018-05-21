@@ -447,8 +447,8 @@ void wren_open_buffer(WrenVM *W) {
   map_set(methods, "cactus" CLASS_NAME "fromFile(_)s",                   w_buffer_fromFile);
   map_set(methods, "cactus" CLASS_NAME "fromString(_)s",                 w_buffer_fromString);
   map_set(methods, "cactus" CLASS_NAME "fromBlank(_,_)s",                w_buffer_fromBlank);
-  map_set(methods, "cactus" CLASS_NAME "w",                              w_buffer_getWidth);
-  map_set(methods, "cactus" CLASS_NAME "h",                              w_buffer_getHeight);
+  map_set(methods, "cactus" CLASS_NAME "width",                          w_buffer_getWidth);
+  map_set(methods, "cactus" CLASS_NAME "height",                         w_buffer_getHeight);
   map_set(methods, "cactus" CLASS_NAME "setAlpha_(_)",                   w_buffer_setAlpha);
   map_set(methods, "cactus" CLASS_NAME "setBlend_(_)",                   w_buffer_setBlend);
   map_set(methods, "cactus" CLASS_NAME "setColor_(_,_,_,_)",             w_buffer_setColor);

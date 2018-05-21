@@ -100,15 +100,12 @@ static void w_graphics_init(WrenVM *W) {
 
 
 static void w_graphics_setSize(WrenVM *W) {
-  wrenEnsureSlots(W, 4);
-  wrenCheckSlot(W, 1, WREN_TYPE_BOOL, "expected List");
-  wrenGetListElement(W, 1, 0, 2);
-	wrenCheckSlot(W, 2, WREN_TYPE_BOOL, "expected Num at index 0");
-  wrenGetListElement(W, 1, 1, 3);
-	wrenCheckSlot(W, 3, WREN_TYPE_BOOL, "expected Num at index 1");
+  wrenEnsureSlots(W, 3);
+	wrenCheckSlot(W, 1, WREN_TYPE_NUM, "expected Num");
+	wrenCheckSlot(W, 2, WREN_TYPE_NUM, "expected Num");
 
-  screenWidth = wrenGetSlotDouble(W, 2);
-  screenHeight = wrenGetSlotDouble(W, 3);
+  screenWidth = wrenGetSlotDouble(W, 1);
+  screenHeight = wrenGetSlotDouble(W, 2);
   resetVideoMode(W);
 }
 
@@ -145,7 +142,7 @@ void wren_open_graphics(WrenVM *W) {
   map_set(methods, "cactus" CLASS_NAME "init_(_,_,_,_,_,_)s", w_graphics_init);
   map_set(methods, "cactus" CLASS_NAME "fullscreens",         w_graphics_getFullscreen);
   map_set(methods, "cactus" CLASS_NAME "maxFpss",             w_graphics_getMaxFps);
-  map_set(methods, "cactus" CLASS_NAME "size=(_)s",           w_graphics_setSize);
+  map_set(methods, "cactus" CLASS_NAME "setSize(_,_)s",       w_graphics_setSize);
   map_set(methods, "cactus" CLASS_NAME "fullscreen=(_)s",     w_graphics_setFullscreen);
   map_set(methods, "cactus" CLASS_NAME "maxFps=(_)s",         w_graphics_setMaxFps);
 }

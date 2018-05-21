@@ -51,7 +51,7 @@ class Config {
 		_samplerate  = 44100
 		_buffersize  = 2048
 		_fullscreen  = false
-		_resizable   = false
+		_resizable   = true
 		_borderless  = false
 		_identity    = title.replace(" ", "")
 	}
@@ -247,8 +247,8 @@ foreign class Buffer {
   foreign static fromString(str)
   foreign static fromBlank(w, h)
 
-  foreign w
-  foreign h
+  foreign width
+  foreign height
 
   foreign setAlpha_(alpha)
   foreign setBlend_(mode)
@@ -428,52 +428,6 @@ foreign class Gif {
 	foreign close()
 }
 
-class Cactus {
-	foreign static version
-
-  foreign static poll()
-  foreign static exit(code)
-  foreign static info(info)
-
-  static exit() {
-    this.exit(Exit.SUCCESS)
-  }
-
-  static onInit_() {
-    Graphics.init_(Config.new())
-    Time.init_()
-  }
-
-  static onQuit_() {
-    this.exit(Exit.SUCCESS)
-  }
-
-  static onStepMain {
-    return Fn.new {
-      for (e in this.poll()) {
-        if (e[0] == "quit") {
-          this.onQuit_()
-        }
-      }
-
-      Time.step()
-      /* UPDATE METHOD */
-      Graphics.clear()
-      /* DRAW METHOD */
-      /* DEBUG METHOD */
-      /* KEYBOARD RESET */
-      /* MOUSE RESET */
-    }
-  }
-
-  static onStep_() {
-    Fiber.new(this.onStepMain).try()
-    System.gc()
-    System.gc()
-  }
-
-}
-
 class FS {
 	foreign static mount(path)
   foreign static unmount(path)
@@ -532,7 +486,7 @@ class Graphics {
   foreign static fullscreen
   foreign static maxFps
 
-  foreign static size=(size)
+  foreign static setSize(width, height)
   foreign static fullscreen=(fullscreen)
   foreign static maxFps=(fps)
 
@@ -543,9 +497,9 @@ class Graphics {
     this.clear()
   }
 
-  static w { __canvas.w }
+  static width { __canvas.width }
 
-  static h { __canvas.h }
+  static height { __canvas.height }
 
   static clearColor { __clearColor }
 
@@ -672,6 +626,60 @@ class Mouse {
 	static y=(y) {
 		this.position = [this.x, y]
 	}
+
+  static reset() {
+
+  }
+
+  static onEvent_(e) {
+
+  }
+}
+
+class KeyBoard {
+  static init_() {
+    __keysDown = {}
+    __keysPressed = {}
+  }
+
+  static isDown(keys) {
+    if (keys is List) {
+      for (k in keys) {
+        if (!__keysDown[k]) {
+          return false
+        }
+      }
+    }
+    return __keysDown[keys]
+  }
+
+  static wasPressed(keys) {
+     if (keys is List) {
+      for (k in keys) {
+        if (!__keysPressed[k]) {
+          return false
+        }
+      }
+    }
+    return __keysPressed[keys]
+  }
+
+  static reset() {
+    for (k in __keysPressed.keys) {
+      __keysPressed[k] = false
+    }
+  }
+
+  static onEvent_(e) {
+    if (e[0] == "keydown") {
+      __keysDown[e[1]] = true
+      __keysPressed[e[1]] = true
+      System.print(e[1])
+    } else if (e[0] == "keyup") {
+      __keysDown[e[1]] = false
+      System.print(e[1])
+    }
+  }
 }
 
 /* class BufferFX {
@@ -683,3 +691,56 @@ class Mouse {
 	foreign static displace(buf, src, map, cx, cy, sx, sy)
 	foreign static blur(buf, src, rx, ry)
 } */
+
+
+
+class Cactus {
+	foreign static version
+
+  foreign static poll()
+  foreign static exit(code)
+  foreign static info(info)
+
+  static exit() {
+    this.exit(Exit.SUCCESS)
+  }
+
+  static onInit_() {
+    Graphics.init_(Config.new())
+    Time.init_()
+    KeyBoard.init_()
+  }
+
+  static onQuit_() {
+    this.exit(Exit.SUCCESS)
+  }
+
+  static onStepMain {
+    return Fn.new {
+      for (e in this.poll()) {
+        if (e[0] == "quit")                   {
+          this.onQuit_()
+        } else if (e[0] == "resize")          {
+          Graphics.setSize(e[1], e[2])
+        }
+        
+        KeyBoard.onEvent_(e)
+        Mouse.onEvent_(e)
+      }
+
+      Time.step()
+      /* UPDATE METHOD */
+      Graphics.clear()
+      /* DRAW METHOD */
+      /* DEBUG METHOD */
+      KeyBoard.reset()
+      Mouse.reset()
+    }
+  }
+
+  static onStep_() {
+    Fiber.new(this.onStepMain).try()
+    System.gc()
+    System.gc()
+  }
+}
